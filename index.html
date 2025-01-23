@@ -171,6 +171,9 @@
             0%, 100% { transform: translateY(0) rotate(-5deg); }
             50% { transform: translateY(-20px) rotate(-5deg); }
         }
+        canvas {
+            font-family: 'Arial Rounded MT Bold', 'Segoe UI Emoji', Arial, sans-serif;
+        }
     </style>
 </head>
 <body>
@@ -469,11 +472,37 @@ function checkCollision(pipe) {
 
 function drawScore() {
     const level = getCurrentLevel();
-    ctx.fillStyle = '#fff';
-    ctx.font = '24px "Arial Rounded MT Bold"';
-    ctx.fillText(`Score: ${score}`, 90, 30);
-    ctx.fillText(`High: ${highScore}`, 90, 60);
-    ctx.fillText(`Level: ${levels.indexOf(level) + 1}`, 90, 90);
+    const xPos = canvas.width - 180; // Right side position
+    const yPosStart = 40;
+    const lineHeight = 35;
+    
+    // Background panel
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.beginPath();
+    ctx.roundRect(xPos - 20, 10, 200, 110, 15);
+    ctx.fill();
+    
+    // Text styling
+    ctx.font = 'bold 24px "Arial Rounded MT Bold"';
+    ctx.textAlign = 'left';
+    
+    // Score
+    ctx.fillStyle = '#2ecc71';
+    ctx.fillText('⭐ ' + score.toString().padStart(3, '0'), xPos, yPosStart);
+    
+    // High Score
+    ctx.fillStyle = '#f1c40f';
+    ctx.fillText('🏆 ' + highScore.toString().padStart(3, '0'), xPos, yPosStart + lineHeight);
+    
+    // Level
+    ctx.fillStyle = '#3498db';
+    ctx.fillText('🚩 Level ' + (levels.indexOf(level) + 1), xPos, yPosStart + (lineHeight * 2));
+    
+    // Add subtle text shadow
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = 3;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
 }
 
 function showGameOverScreen() {
