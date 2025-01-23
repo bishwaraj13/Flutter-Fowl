@@ -174,6 +174,18 @@
         canvas {
             font-family: 'Arial Rounded MT Bold', 'Segoe UI Emoji', Arial, sans-serif;
         }
+        #controls {
+            color: #f1c40f;
+            font-size: 1.2em;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation: floatText 2s ease-in-out infinite;
+        }
+
+        @keyframes floatText {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
     </style>
 </head>
 <body>
@@ -183,6 +195,7 @@
             FLUTTER FOWL
         </div>
         <div id="highScore">High Score: <span id="highScoreValue">0</span></div>
+        <div id="controls">🔼 SPACE or UP ARROW to FLAP!</div>
         <button id="startButton">Start Game</button>
     </div>
 
