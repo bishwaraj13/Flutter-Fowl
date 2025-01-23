@@ -4,7 +4,7 @@ Flutter Fowl is a browser-based game where you control a bird that must navigate
 
 [Play Here](https://bishwaraj13.github.io/Flutter-Fowl/)
 
-<img src="resources/gameplay.gif" height="30%" alt="Gameplay GIF">
+<video src="resources/gameplay.webm" controls alt="Gameplay Video"></video>
 
 ## How to Play
 
