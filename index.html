@@ -5,7 +5,7 @@
     <style>
         /* Add cloud styles */
         .clouds {
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
@@ -45,7 +45,7 @@
         }
 
         @keyframes float {
-            from { transform: translateX(100vw); }
+            from { transform: translateX(100%); }
             to { transform: translateX(-100%); }
         }
 
@@ -113,7 +113,6 @@
             50% { transform: scale(1.05); }
         }
 
-        /* Rest of existing styles remain the same */
         body {
             margin: 0;
             display: flex;
@@ -124,9 +123,11 @@
             font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
         }
         #game {
+            position: relative;
             border-radius: 15px;
             box-shadow: 0 0 30px rgba(0,0,0,0.5);
             background: #3498db;
+            overflow: hidden;
         }
         .screen {
             position: absolute;
@@ -173,8 +174,6 @@
     </style>
 </head>
 <body>
-    <div class="clouds" id="clouds"></div>
-
     <div id="startScreen" class="screen">
         <div class="game-title">
             <div class="sparkles" id="startSparkles"></div>
@@ -192,10 +191,13 @@
         <button id="replayButton">Play Again</button>
     </div>
 
-    <canvas id="game" width="400" height="600"></canvas>
+    <div id="game" width="400" height="600">
+        <div class="clouds" id="clouds"></div>
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+    </div>
 
 <script>
-const canvas = document.getElementById('game');
+const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 let highScore = localStorage.getItem('flutterHighScore') || 0;
 
@@ -252,14 +254,15 @@ const finalScore = document.getElementById('finalScore');
 // Cloud generation
 function createClouds() {
     const cloudsContainer = document.getElementById('clouds');
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 3; i++) { // Reduce the number of clouds
         const cloud = document.createElement('div');
         cloud.className = 'cloud';
         cloud.style.width = `${Math.random() * 100 + 50}px`;
         cloud.style.height = `${Math.random() * 40 + 20}px`;
         cloud.style.top = `${Math.random() * 80}%`;
-        cloud.style.animationDuration = `${Math.random() * 20 + 20}s`;
-        cloud.style.animationDelay = `${Math.random() * -20}s`;
+        cloud.style.left = '100%'; // Start from the right side
+        cloud.style.animationDuration = `${Math.random() * 10 + 5}s`; // Faster animation
+        cloud.style.animationDelay = `${Math.random() * -10}s`;
         cloudsContainer.appendChild(cloud);
     }
 }
