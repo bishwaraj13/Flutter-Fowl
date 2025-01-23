@@ -8,12 +8,12 @@ Flutter Fowl is a browser-based game where you control a bird that must navigate
 
 ## How to Play
 
-1. **Start the Game**: Open the `index.html` file in your web browser.
+1. **Start the Game**: Open the `index.html` file in your web browser. Click on `Start game`.
 2. **Controls**:
    - Click the mouse or press the `SPACE` or `UP` arrow key to make the bird flap its wings and move upwards.
    - Release to let the bird fall due to gravity.
 3. **Objective**: Navigate the bird through the gaps between the pipes without colliding with them.
-4. **Scoring**: You earn points for each set of pipes you successfully pass through.
+4. **Scoring**: You earn points for each set of pipes you successfully pass through. 1 point for regular pipe, and 3 points for golden pipe.
 5. **Game Over**: The game ends if the bird collides with a pipe or the boundaries of the canvas.
 6. **High Score**: Your highest score is saved and displayed on the screen.
 
