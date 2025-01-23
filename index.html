@@ -48,6 +48,36 @@ let bird = {
     velocity: 0,
     size: 20
 };
+const levels = [
+    { // Level 1 - Easier
+        scoreRequired: 0,
+        pipeSpeed: 1.5,
+        pipeGap: 200,
+        pipeSpacing: 250,
+        goldenPipeChance: 0.1
+    },
+    { // Level 2
+        scoreRequired: 10,
+        pipeSpeed: 2,
+        pipeGap: 180,
+        pipeSpacing: 220,
+        goldenPipeChance: 0.1
+    },
+    { // Level 3
+        scoreRequired: 20,
+        pipeSpeed: 2.5,
+        pipeGap: 160,
+        pipeSpacing: 200,
+        goldenPipeChance: 0.15
+    },
+    { // Level 4 - Harder
+        scoreRequired: 30,
+        pipeSpeed: 3,
+        pipeGap: 150,
+        pipeSpacing: 200,
+        goldenPipeChance: 0.2
+    }
+];
 let pipes = [];
 let score = 0;
 let gameStarted = false;
@@ -55,8 +85,6 @@ let gameOver = false;
 const gravity = 0.5;
 const jump = -8;
 const pipeWidth = 50;
-const pipeGap = 150;
-const pipeSpacing = 200;
 
 // Sound functions
 function playTone(freq, duration) {
@@ -77,15 +105,25 @@ function playTone(freq, duration) {
     oscillator.stop(audioCtx.currentTime + duration/1000);
 }
 
+function getCurrentLevel() {
+    for (let i = levels.length - 1; i >= 0; i--) {
+        if (score >= levels[i].scoreRequired) {
+            return levels[i];
+        }
+    }
+    return levels[0];
+}
+
 // Game functions
 function createPipe() {
-    const gapPosition = Math.random() * (canvas.height - pipeGap - 100) + 50;
+    const level = getCurrentLevel();
+    const gapPosition = Math.random() * (canvas.height - level.pipeGap - 100) + 50;
     return {
         x: canvas.width,
         topHeight: gapPosition,
-        bottomY: gapPosition + pipeGap,
+        bottomY: gapPosition + level.pipeGap,
         passed: false,
-        highlight: Math.random() > 0.9 // 10% chance for golden pipe
+        highlight: Math.random() < level.goldenPipeChance
     };
 }
 
@@ -123,22 +161,24 @@ function checkCollision(pipe) {
 
 function updateGame() {
     if (!gameStarted || gameOver) return;
+    const level = getCurrentLevel();
 
     // Update bird
     bird.velocity += gravity;
     bird.y += bird.velocity;
 
     // Update pipes
-    if (pipes.length === 0 || pipes[pipes.length-1].x < canvas.width - pipeSpacing) {
+    if (pipes.length === 0 || pipes[pipes.length-1].x < canvas.width - level.pipeSpacing) {
         pipes.push(createPipe());
     }
 
     pipes.forEach(pipe => {
-        pipe.x -= 2;
+        pipe.x -= level.pipeSpeed;
 
         // Score counting
         if (!pipe.passed && bird.x > pipe.x + pipeWidth) {
-            score++;
+            // Award 3 points for golden pipes, 1 point for regular pipes
+            score += pipe.highlight ? 3 : 1;
             if(score > highScore) {
                 highScore = score;
                 localStorage.setItem('flutterHighScore', highScore);
@@ -154,7 +194,6 @@ function updateGame() {
         }
     });
 
-    // Remove off-screen pipes
     pipes = pipes.filter(pipe => pipe.x > -pipeWidth);
 
     // Floor/ceiling collision
@@ -165,10 +204,12 @@ function updateGame() {
 }
 
 function drawScore() {
+    const level = getCurrentLevel();
     ctx.fillStyle = '#fff';
     ctx.font = '24px "Arial Rounded MT Bold"';
     ctx.fillText(`Score: ${score}`, 90, 30);
     ctx.fillText(`High: ${highScore}`, 90, 60);
+    ctx.fillText(`Level: ${levels.indexOf(level) + 1}`, 90, 90);
 }
 
 function drawStartScreen() {
