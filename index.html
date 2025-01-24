@@ -313,6 +313,29 @@
             pointer-events: none;
             filter: drop-shadow(0 0 10px rgba(255, 223, 0, 0.5));
         }
+        /* Updated horizontal pipe styles */
+    .horizontal-pipe {
+        height: 20px; /* Reduced from 60px */
+        background-image: repeating-linear-gradient(
+            -45deg,
+            #8c4a32 0px,
+            #8c4a32 8px,
+            #763c28 8px,
+            #763c28 16px
+        );
+        box-shadow: inset 0 0 8px rgba(0,0,0,0.2);
+    }
+    
+    .pipe-joint {
+        width: 15px; /* Reduced from 25px */
+        box-shadow: inset -3px 0 6px rgba(0,0,0,0.15);
+    }
+    
+    .pipe-bolt {
+        width: 4px; /* Reduced from 8px */
+        height: 4px;
+        box-shadow: 0 0 3px rgba(0,0,0,0.2);
+    }
     </style>
 </head>
 <body>
@@ -353,6 +376,90 @@
     </div>
 
 <script>
+
+let horizontalPipes = {
+    top: { x: 0 },
+    bottom: { x: 0 }
+};
+
+function createHorizontalPipePattern() {
+    const patternCanvas = document.createElement('canvas');
+    const ctx = patternCanvas.getContext('2d');
+    patternCanvas.width = 80;
+    patternCanvas.height = 20; // Reduced height
+    
+    // Base pipe color
+    ctx.fillStyle = '#8c4a32';
+    ctx.fillRect(0, 0, 80, 20);
+    
+    // Subtle rivet pattern
+    ctx.fillStyle = '#763c28';
+    for(let x = 8; x < 80; x += 16) {
+        for(let y = 4; y < 20; y += 10) { // Adjusted vertical spacing
+            ctx.beginPath();
+            ctx.arc(x, y, 1.5, 0, Math.PI*2); // Smaller rivets
+            ctx.fill();
+        }
+    }
+    
+    return ctx.createPattern(patternCanvas, 'repeat');
+}
+
+const horizontalPipePattern = createHorizontalPipePattern();
+
+function updateHorizontalPipes() {
+    if(gameStarted && !gameOver) {
+        const currentSpeed = getCurrentLevel().pipeSpeed;
+        horizontalPipes.top.x -= currentSpeed;
+        horizontalPipes.bottom.x -= currentSpeed;
+        
+        if(horizontalPipes.top.x < -canvas.width) horizontalPipes.top.x = 0;
+        if(horizontalPipes.bottom.x < -canvas.width) horizontalPipes.bottom.x = 0;
+    }
+}
+
+function drawHorizontalPipes() {
+    // Top horizontal pipe
+    ctx.save();
+    ctx.translate(horizontalPipes.top.x, 0);
+    ctx.fillStyle = horizontalPipePattern;
+    ctx.fillRect(0, 0, canvas.width * 2, 20); // 20px height
+    
+    // Slim pipe joints
+    for(let x = 0; x < canvas.width * 2; x += 80) {
+        ctx.fillStyle = '#542915';
+        ctx.fillRect(x, 0, 12, 20); // Narrower joints
+        
+        // Tiny bolts
+        ctx.fillStyle = '#95a5a6';
+        for(let y = 6; y < 20; y += 12) {
+            ctx.beginPath();
+            ctx.arc(x + 6, y, 2, 0, Math.PI*2); // Smaller bolts
+            ctx.fill();
+        }
+    }
+    ctx.restore();
+
+    // Bottom horizontal pipe
+    ctx.save();
+    ctx.translate(horizontalPipes.bottom.x, canvas.height - 20); // Adjusted position
+    ctx.fillStyle = horizontalPipePattern;
+    ctx.fillRect(0, 0, canvas.width * 2, 20);
+    
+    for(let x = 0; x < canvas.width * 2; x += 80) {
+        ctx.fillStyle = '#542915';
+        ctx.fillRect(x, 0, 12, 20);
+        
+        ctx.fillStyle = '#95a5a6';
+        for(let y = 6; y < 20; y += 12) {
+            ctx.beginPath();
+            ctx.arc(x + 6, y, 2, 0, Math.PI*2);
+            ctx.fill();
+        }
+    }
+    ctx.restore();
+}
+
 
 let clouds = [];
 const CLOUD_CONFIG = {
@@ -647,6 +754,9 @@ function resetGame() {
     gameOverScreen.style.display = 'none';
     document.getElementById('startPrompt').style.display = 'block';
     updateHighScoreDisplay();
+    // Reset horizontal pipe positions
+    horizontalPipes.top.x = 0;
+    horizontalPipes.bottom.x = 0;
 }
 
 
@@ -888,6 +998,9 @@ function gameLoop() {
         ctx.arc(Math.random()*canvas.width, Math.random()*canvas.height, 2, 0, Math.PI*2);
         ctx.fill();
     }
+
+    updateHorizontalPipes(); // Add this in update section
+    drawHorizontalPipes();   // Add this in draw section
 
     if (gameStarted && !gameOver) {
         // Add floating animation when ready
@@ -1281,6 +1394,9 @@ function showGameOverScreen() {
     finalScore.textContent = score;
     updateHighScoreDisplay();
     playGameOverSound(); // Use new gentle sound
+    // Force stop any residual movement
+    horizontalPipes.top.x = 0;
+    horizontalPipes.bottom.x = 0;
 }
 </script>
 </body>
