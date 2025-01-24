@@ -284,6 +284,15 @@
     </div>
 
 <script>
+
+let clouds = [];
+const CLOUD_CONFIG = {
+  count: 8,
+  baseSpeed: 0.15,
+  sizeVariation: 0.3,
+  opacityRange: [0.3, 0.7]
+};
+
 let audioCtx = null; // Single AudioContext instance
 let isReady = false;
 let buildings = [];
@@ -408,6 +417,31 @@ const ctx = canvas.getContext('2d');
 let highScore = localStorage.getItem('flutterHighScore') || 0;
 updateHighScoreDisplay();
 
+function updateClouds() {
+  clouds.forEach(cloud => {
+    cloud.x += cloud.speed;
+    // Reset cloud position when off-screen
+    if(cloud.x > canvas.width + 200) {
+      cloud.x = -200;
+      cloud.y = Math.random() * canvas.height * 0.4;
+    }
+  });
+}
+
+function initClouds() {
+  clouds = [];
+  for(let i = 0; i < CLOUD_CONFIG.count; i++) {
+    clouds.push({
+      x: Math.random() * canvas.width * 2,
+      y: Math.random() * canvas.height * 0.4,
+      scale: 0.8 + Math.random() * CLOUD_CONFIG.sizeVariation,
+      speed: CLOUD_CONFIG.baseSpeed + Math.random() * 0.1,
+      opacity: CLOUD_CONFIG.opacityRange[0] + 
+              Math.random() * (CLOUD_CONFIG.opacityRange[1] - CLOUD_CONFIG.opacityRange[0])
+    });
+  }
+}
+
 function resizeCanvas() {
     const rect = gameContainer.getBoundingClientRect();
     canvas.width = rect.width;
@@ -431,6 +465,8 @@ function resizeCanvas() {
         greeneryBushes.push({ x: bushX, size: size });
         bushX += size + Math.random() * 30;
     }
+
+    initClouds();
 }
 
 window.addEventListener('resize', resizeCanvas);
@@ -705,6 +741,27 @@ function updateGame() {
     }
 }
 
+function drawClouds() {
+  clouds.forEach(cloud => {
+    ctx.save();
+    ctx.translate(cloud.x, cloud.y);
+    
+    // Cloud base shape
+    ctx.beginPath();
+    ctx.arc(0, 0, 40 * cloud.scale, 0, Math.PI * 2);
+    ctx.arc(40 * cloud.scale, -15 * cloud.scale, 35 * cloud.scale, 0, Math.PI * 2);
+    ctx.arc(-30 * cloud.scale, 10 * cloud.scale, 30 * cloud.scale, 0, Math.PI * 2);
+    ctx.arc(50 * cloud.scale, 20 * cloud.scale, 25 * cloud.scale, 0, Math.PI * 2);
+    
+    // Cloud styling
+    ctx.fillStyle = `rgba(255, 255, 255, ${cloud.opacity})`;
+    ctx.filter = `blur(${8 * cloud.scale}px)`;
+    ctx.fill();
+    
+    ctx.restore();
+  });
+}
+
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
@@ -714,6 +771,10 @@ function gameLoop() {
     gradient.addColorStop(1, '#4682B4');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    updateClouds();
+    // Draw clouds
+    drawClouds();
 
     // Draw city skyline
     ctx.fillStyle = '#2c3e50';
