@@ -346,35 +346,42 @@ let bird = {
     size: canvas.width * 0.05
 };
 
-// Rest of game variables
 const levels = [
-    { // Level 1 - Easier
+    { // Level 1 - Easy (alternating single pipes) 
         scoreRequired: 0,
+        pipeSpeed: 1.2,
+        pipeSpacing: 280,
+        goldenPipeChance: 0,
+        minSinglePipeHeight: 100,  // Minimum height for single pipes
+        maxSinglePipeHeight: 400   // Maximum height for single pipes
+    },
+    { // Level 2 - Normal difficulty
+        scoreRequired: 5,
         pipeSpeed: 1.5,
         pipeGap: 200,
         pipeSpacing: 250,
         goldenPipeChance: 0.1
     },
-    { // Level 2
-        scoreRequired: 10,
+    { // Level 3 - Medium difficulty
+        scoreRequired: 15,
         pipeSpeed: 2,
         pipeGap: 180,
         pipeSpacing: 220,
-        goldenPipeChance: 0.1
+        goldenPipeChance: 0.15
     },
-    { // Level 3
-        scoreRequired: 20,
+    { // Level 4 - Hard difficulty
+        scoreRequired: 25,
         pipeSpeed: 2.5,
         pipeGap: 160,
         pipeSpacing: 200,
-        goldenPipeChance: 0.15
-    },
-    { // Level 4 - Harder
-        scoreRequired: 30,
-        pipeSpeed: 3,
-        pipeGap: 150,
-        pipeSpacing: 200,
         goldenPipeChance: 0.2
+    },
+    { // Level 5 - Expert
+        scoreRequired: 35,
+        pipeSpeed: 3,
+        pipeGap: 140,
+        pipeSpacing: 180,
+        goldenPipeChance: 0.25
     }
 ];
 let pipes = [];
@@ -585,14 +592,33 @@ function checkCollision(pipe) {
              bird.y + bird.size > pipe.bottomY));
 }
 
-// Modified pipe creation for responsive sizes
 function createPipe() {
     const level = getCurrentLevel();
-    const gapPosition = Math.random() * (canvas.height - level.pipeGap - 100) + 50;
+    let topHeight, bottomY;
+
+    if (level.scoreRequired === 0) {
+        const isTopPipe = Math.random() < 0.5;
+        const pipeHeight = Math.random() * 
+            (level.maxSinglePipeHeight - level.minSinglePipeHeight) + 
+            level.minSinglePipeHeight;
+
+        if (isTopPipe) {
+            topHeight = pipeHeight;
+            bottomY = canvas.height; // Bottom pipe off-screen
+        } else {
+            topHeight = 0; // Top pipe off-screen
+            bottomY = canvas.height - pipeHeight;
+        }
+    } else {
+        const gapPosition = Math.random() * (canvas.height - level.pipeGap - 100) + 50;
+        topHeight = gapPosition;
+        bottomY = gapPosition + level.pipeGap;
+    }
+
     return {
         x: canvas.width,
-        topHeight: gapPosition,
-        bottomY: gapPosition + level.pipeGap,
+        topHeight: topHeight,
+        bottomY: bottomY,
         passed: false,
         highlight: Math.random() < level.goldenPipeChance
     };
@@ -610,24 +636,34 @@ function drawBird() {
 
 function drawPipes() {
     pipes.forEach(pipe => {
-        // Top pipe
         ctx.fillStyle = pipe.highlight ? '#f1c40f' : '#2ecc71';
-        ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
-        // Bottom pipe
-        ctx.fillRect(pipe.x, pipe.bottomY, pipeWidth, canvas.height - pipe.bottomY);
         
-        // Pipe decorations
-        ctx.fillStyle = '#27ae60';
-        ctx.fillRect(pipe.x - 5, pipe.topHeight - 20, pipeWidth + 10, 20);
-        ctx.fillRect(pipe.x - 5, pipe.bottomY, pipeWidth + 10, 20);
+        // Draw top pipe if it exists
+        if (pipe.topHeight > 0) {
+            ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
+            // Top decoration
+            ctx.fillStyle = '#27ae60';
+            ctx.fillRect(pipe.x - 5, pipe.topHeight - 20, pipeWidth + 10, 20);
+        }
+
+        // Draw bottom pipe if it exists
+        if (pipe.bottomY < canvas.height) {
+            ctx.fillStyle = pipe.highlight ? '#f1c40f' : '#2ecc71';
+            ctx.fillRect(pipe.x, pipe.bottomY, pipeWidth, canvas.height - pipe.bottomY);
+            // Bottom decoration
+            ctx.fillStyle = '#27ae60';
+            ctx.fillRect(pipe.x - 5, pipe.bottomY, pipeWidth + 10, 20);
+        }
     });
 }
 
 function checkCollision(pipe) {
+    const collidesTop = pipe.topHeight > 0 && (bird.y - bird.size < pipe.topHeight);
+    const collidesBottom = pipe.bottomY < canvas.height && (bird.y + bird.size > pipe.bottomY);
+
     return (bird.x + bird.size > pipe.x && 
             bird.x - bird.size < pipe.x + pipeWidth && 
-            (bird.y - bird.size < pipe.topHeight || 
-             bird.y + bird.size > pipe.bottomY));
+            (collidesTop || collidesBottom));
 }
 
 function drawScore() {
