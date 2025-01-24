@@ -710,7 +710,7 @@ function updateGame() {
             const particlesPerPart = SMOKE_CONFIG.emissionRate * deltaTime;
 
             // Emit from top pipe if present
-            if (pipe.topHeight > 0 && pipe.smoking) {
+            if (pipe.topHeight > 0 && pipe.smoking && !pipe.highlight) {
                 let emittedTop = 0;
                 while (emittedTop < particlesPerPart && 
                     smokeParticles.length < SMOKE_CONFIG.maxParticles) {
@@ -731,7 +731,7 @@ function updateGame() {
             }
 
             // Emit from bottom pipe if present
-            if (pipe.bottomY < canvas.height && pipe.smoking) {
+            if (pipe.bottomY < canvas.height && pipe.smoking && !pipe.highlight) {
                 let emittedBottom = 0;
                 while (emittedBottom < particlesPerPart && 
                     smokeParticles.length < SMOKE_CONFIG.maxParticles) {
