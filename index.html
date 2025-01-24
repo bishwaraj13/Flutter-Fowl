@@ -395,6 +395,41 @@ function playBirdSound() {
     };
 }
 
+function updateSmoke() {
+    smokeParticles = smokeParticles.filter(particle => {
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+        particle.opacity -= SMOKE_CONFIG.fadeRate;
+        particle.size += 0.25;  // Faster growth
+        particle.rotation += 0.02;
+        return particle.opacity > 0.1 && particle.size < 35;
+    });
+}
+
+function drawSmoke() {
+    smokeParticles.forEach(particle => {
+        ctx.save();
+        ctx.translate(particle.x, particle.y);
+        ctx.rotate(particle.rotation);
+        
+        // Dark smoke core
+        ctx.beginPath();
+        ctx.ellipse(0, 0, particle.size, particle.size * 0.8, 0, 0, Math.PI * 2);
+        const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, particle.size);
+        gradient.addColorStop(0, `rgba(30, 30, 30, ${particle.opacity})`);
+        gradient.addColorStop(1, `rgba(0, 0, 0, 0)`);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Smoke highlights
+        ctx.beginPath();
+        ctx.ellipse(0, 0, particle.size * 0.6, particle.size * 0.5, 0, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(80, 80, 80, ${particle.opacity * 0.4})`;
+        ctx.fill();
+        
+        ctx.restore();
+    });
+}
 // Gentle game over sound
 function playGameOverSound() {
     if (!audioCtx) initAudioContext();
@@ -514,7 +549,19 @@ const pipeWidth = 50;
 const startScreen = document.getElementById('startScreen');
 const gameOverScreen = document.getElementById('gameOverScreen');
 const finalScore = document.getElementById('finalScore');
-
+let smokeParticles = [];
+let lastFrameTime = Date.now();
+const SMOKE_CONFIG = {
+    emissionRate: 30,         // Particles per second per pipe
+    maxParticles: 500,        // Reduced for performance
+    baseYOffset: 8,          
+    horizontalSpread: 25,
+    verticalSpeed: 1.2,      
+    startSize: [3, 6],       
+    sizeGrowth: 0.15,        
+    fadeRate: 0.02,          
+    swirlIntensity: 0.05     
+};
 // Cloud generation
 function createClouds() {
     const cloudsContainer = document.getElementById('clouds');
@@ -642,6 +689,10 @@ function initEventListeners() {
 initEventListeners();
 
 function updateGame() {
+    const now = Date.now();
+    const deltaTime = (now - lastFrameTime) / 1000; // Time in seconds
+    lastFrameTime = now;
+
     if (!gameStarted || gameOver) return;
     
     if (!isReady) {
@@ -654,6 +705,51 @@ function updateGame() {
 
         pipes.forEach(pipe => {
             pipe.x -= getCurrentLevel().pipeSpeed;
+
+            // Smoke for regular pipes only
+            const particlesPerPart = SMOKE_CONFIG.emissionRate * deltaTime;
+
+            // Emit from top pipe if present
+            if (pipe.topHeight > 0 && pipe.smoking) {
+                let emittedTop = 0;
+                while (emittedTop < particlesPerPart && 
+                    smokeParticles.length < SMOKE_CONFIG.maxParticles) {
+                    
+                    const baseY = pipe.topHeight - SMOKE_CONFIG.baseYOffset;
+                    
+                    smokeParticles.push({
+                        x: pipe.x + pipeWidth/2 + (Math.random() - 0.5) * SMOKE_CONFIG.horizontalSpread,
+                        y: baseY + (Math.random() - 0.5) * 5,
+                        vx: (Math.random() - 0.5) * 0.8,
+                        vy: -SMOKE_CONFIG.verticalSpeed * (0.8 + Math.random() * 0.4),
+                        size: SMOKE_CONFIG.startSize[0] + Math.random() * (SMOKE_CONFIG.startSize[1] - SMOKE_CONFIG.startSize[0]),
+                        opacity: 0.8,
+                        rotation: Math.random() * Math.PI * 2
+                    });
+                    emittedTop++;
+                }
+            }
+
+            // Emit from bottom pipe if present
+            if (pipe.bottomY < canvas.height && pipe.smoking) {
+                let emittedBottom = 0;
+                while (emittedBottom < particlesPerPart && 
+                    smokeParticles.length < SMOKE_CONFIG.maxParticles) {
+                    
+                    const baseY = pipe.bottomY + SMOKE_CONFIG.baseYOffset;
+                    
+                    smokeParticles.push({
+                        x: pipe.x + pipeWidth/2 + (Math.random() - 0.5) * SMOKE_CONFIG.horizontalSpread,
+                        y: baseY + (Math.random() - 0.5) * 5,
+                        vx: (Math.random() - 0.5) * 0.8,
+                        vy: -SMOKE_CONFIG.verticalSpeed * (0.8 + Math.random() * 0.4),
+                        size: SMOKE_CONFIG.startSize[0] + Math.random() * (SMOKE_CONFIG.startSize[1] - SMOKE_CONFIG.startSize[0]),
+                        opacity: 0.8,
+                        rotation: Math.random() * Math.PI * 2
+                    });
+                    emittedBottom++;
+                }
+            }
 
             if (!pipe.passed && bird.x > pipe.x + pipeWidth) {
                 score += pipe.highlight ? 3 : 1;
@@ -741,7 +837,9 @@ function gameLoop() {
         }
         
         updateGame();
+        updateSmoke();
         drawPipes();
+        drawSmoke();
         drawBird();
         drawScore();
     }
@@ -820,7 +918,8 @@ function createPipe() {
         topHeight: topHeight,
         bottomY: bottomY,
         passed: false,
-        highlight: Math.random() < level.goldenPipeChance
+        highlight: Math.random() < level.goldenPipeChance,
+        smoking: Math.random() < 0.3 // 30% chance to emit smoke
     };
 }
 
