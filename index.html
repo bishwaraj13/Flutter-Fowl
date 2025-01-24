@@ -253,6 +253,19 @@
             animation: bounce 2s infinite;
             margin-bottom: 30px;
         }
+        .start-prompt {
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #f1c40f;
+            font-size: 1.5em;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation: floatText 2s ease-in-out infinite;
+            z-index: 3;
+            pointer-events: none;
+        }
         button {
             padding: 15px 30px;
             font-size: 1.2em;
@@ -317,6 +330,8 @@
             <button id="replayButton">Play Again</button>
         </div>
 
+        <div class="start-prompt" id="startPrompt">TAP or SPACE/UP to START!</div>
+
         <div id="game">
             <div class="clouds" id="clouds"></div>
             <canvas id="gameCanvas"></canvas>
@@ -324,6 +339,8 @@
     </div>
 
 <script>
+
+let isReady = false;
 let buildings = [];
 let greeneryBushes = [];
 
@@ -459,18 +476,20 @@ function updateHighScoreDisplay() {
     document.getElementById('finalHighScore').textContent = highScore;
 }
 
-// Modified resetGame function
 function resetGame() {
     gameStarted = true;
     gameOver = false;
-    bird.y = 300;
+    isReady = true;
+    bird.y = canvas.height / 2;
     bird.velocity = 0;
     pipes = [];
     score = 0;
     startScreen.style.display = 'none';
     gameOverScreen.style.display = 'none';
+    document.getElementById('startPrompt').style.display = 'block';
     updateHighScoreDisplay();
 }
+
 
 function startGame() {
     resetGame();
@@ -502,55 +521,84 @@ canvas.addEventListener('click', () => {
     }
 });
 
-// Modified event listeners for mobile
-function handleJump() {
+function handleJump(e) {
+    // Prevent default to avoid double-tap zoom on mobile
+    if (e.type === 'touchstart') e.preventDefault();
+    
+    if (isReady) {
+        isReady = false;
+        document.getElementById('startPrompt').style.display = 'none';
+        bird.velocity = jump;
+        playTone(330, 50);
+        return;
+    }
+    
     if (gameStarted && !gameOver) {
         bird.velocity = jump;
         playTone(330, 50);
     }
 }
 
-canvas.addEventListener('click', handleJump);
-canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    handleJump();
-});
+function initEventListeners() {
+    // Mouse/touch events
+    canvas.addEventListener('click', handleJump);
+    canvas.addEventListener('touchstart', handleJump);
 
-// Modified game functions
-function updateGame() {
-    if (!gameStarted || gameOver) return;
-    
-    bird.velocity += gravity;
-    bird.y += bird.velocity;
-
-    if (pipes.length === 0 || pipes[pipes.length-1].x < canvas.width - getCurrentLevel().pipeSpacing) {
-        pipes.push(createPipe());
-    }
-
-    pipes.forEach(pipe => {
-        pipe.x -= getCurrentLevel().pipeSpeed;
-
-        if (!pipe.passed && bird.x > pipe.x + pipeWidth) {
-            score += pipe.highlight ? 3 : 1;
-            if(score > highScore) {
-                highScore = score;
-                localStorage.setItem('flutterHighScore', highScore);
-            }
-            pipe.passed = true;
-            playTone(pipe.highlight ? 880 : 523, 100);
-        }
-
-        if (checkCollision(pipe)) {
-            gameOver = true;
-            showGameOverScreen();
+    // Keyboard events
+    document.addEventListener('keydown', (e) => {
+        if (['Space', 'ArrowUp'].includes(e.code)) {
+            handleJump(e);
         }
     });
 
-    pipes = pipes.filter(pipe => pipe.x > -pipeWidth);
+    // Start button
+    document.getElementById('startButton').addEventListener('click', () => {
+        startScreen.style.display = 'none';
+        resetGame();
+    });
 
-    if (bird.y + bird.size > canvas.height || bird.y - bird.size < 0) {
-        gameOver = true;
-        showGameOverScreen();
+    // Replay button
+    document.getElementById('replayButton').addEventListener('click', resetGame);
+}
+
+initEventListeners();
+
+function updateGame() {
+    if (!gameStarted || gameOver) return;
+    
+    if (!isReady) {
+        bird.velocity += gravity;
+        bird.y += bird.velocity;
+
+        if (pipes.length === 0 || pipes[pipes.length-1].x < canvas.width - getCurrentLevel().pipeSpacing) {
+            pipes.push(createPipe());
+        }
+
+        pipes.forEach(pipe => {
+            pipe.x -= getCurrentLevel().pipeSpeed;
+
+            if (!pipe.passed && bird.x > pipe.x + pipeWidth) {
+                score += pipe.highlight ? 3 : 1;
+                if(score > highScore) {
+                    highScore = score;
+                    localStorage.setItem('flutterHighScore', highScore);
+                }
+                pipe.passed = true;
+                playTone(pipe.highlight ? 880 : 523, 100);
+            }
+
+            if (checkCollision(pipe)) {
+                gameOver = true;
+                showGameOverScreen();
+            }
+        });
+
+        pipes = pipes.filter(pipe => pipe.x > -pipeWidth);
+
+        if (bird.y + bird.size > canvas.height || bird.y - bird.size < 0) {
+            gameOver = true;
+            showGameOverScreen();
+        }
     }
 }
 
@@ -590,18 +638,17 @@ function gameLoop() {
     ctx.fillStyle = '#27ae60';
     greeneryBushes.forEach(bush => {
         ctx.beginPath();
-        // Draw bush as a circle emerging from the grass
         ctx.arc(
-            bush.x,                   // X position
-            canvas.height - 30,       // Center at top of grass
-            bush.size,                // Radius
-            Math.PI,                  // Start angle (180 degrees)
-            Math.PI * 2               // End angle (360 degrees)
+            bush.x,
+            canvas.height - 30,
+            bush.size,
+            Math.PI,
+            Math.PI * 2
         );
         ctx.fill();
     });
 
-    // Existing star drawing code
+    // Draw stars
     ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
     for(let i = 0; i < 50; i++) {
         ctx.beginPath();
@@ -610,14 +657,21 @@ function gameLoop() {
     }
 
     if (gameStarted && !gameOver) {
+        // Add floating animation when ready
+        if (isReady) {
+            bird.y = canvas.height / 2 + Math.sin(Date.now() * 0.005) * 10;
+        }
+        
         updateGame();
         drawPipes();
         drawBird();
         drawScore();
     }
-    
+
     requestAnimationFrame(gameLoop);
 }
+
+document.getElementById('startPrompt').style.display = 'none';
 
 // Initialize game
 startScreen.style.display = 'flex';
