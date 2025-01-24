@@ -881,26 +881,144 @@ function drawBird() {
     ctx.fill();
 }
 
+// Add this pattern creation AT THE TOP of your file
+const rustPattern = (() => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.height = 64;
+    
+    // Base rust color
+    ctx.fillStyle = '#763c28';
+    ctx.fillRect(0, 0, 64, 64);
+    
+    // Rust texture
+    ctx.fillStyle = '#964f38';
+    for(let i = 0; i < 200; i++) {
+        ctx.fillRect(
+            Math.random() * 64,
+            Math.random() * 64,
+            Math.random() * 3,
+            Math.random() * 3
+        );
+    }
+    
+    // Dark corrosion spots
+    ctx.fillStyle = '#542915';
+    for(let i = 0; i < 50; i++) {
+        ctx.beginPath();
+        ctx.arc(
+            Math.random() * 64,
+            Math.random() * 64,
+            Math.random() * 3,
+            0,
+            Math.PI * 2
+        );
+        ctx.fill();
+    }
+    
+    return ctx.createPattern(canvas, 'repeat');
+})();
+
 function drawPipes() {
     pipes.forEach(pipe => {
-        ctx.fillStyle = pipe.highlight ? '#f1c40f' : '#2ecc71';
-        
-        // Draw top pipe if it exists
+        // Rusty metal colors
+        const baseColor = pipe.highlight ? '#f95e10' : '#8c4a32';
+        const shadowColor = pipe.highlight ? '#6d2600' : '#542915';
+        const rustHighlight = pipe.highlight ? '#ff7b4a' : '#b35738';
+
+        // Draw top pipe
         if (pipe.topHeight > 0) {
+            // Main body with texture
+            ctx.fillStyle = rustPattern;
             ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
-            // Top decoration
-            ctx.fillStyle = '#27ae60';
-            ctx.fillRect(pipe.x - 5, pipe.topHeight - 20, pipeWidth + 10, 20);
+
+            // Depth gradient
+            const depthGradient = ctx.createLinearGradient(
+                pipe.x, 0,
+                pipe.x, pipe.topHeight
+            );
+            depthGradient.addColorStop(0, shadowColor);
+            depthGradient.addColorStop(1, baseColor);
+            
+            ctx.globalAlpha = 0.7;
+            ctx.fillStyle = depthGradient;
+            ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
+            ctx.globalAlpha = 1;
+
+            // Corrosion edges
+            ctx.fillStyle = rustHighlight;
+            ctx.beginPath();
+            ctx.roundRect(pipe.x - 5, pipe.topHeight - 25, pipeWidth + 10, 25, [5, 5, 0, 0]);
+            ctx.fill();
+
+            // Rivets
+            ctx.fillStyle = '#5a5a5a';
+            const rivetSpacing = (pipeWidth + 10) / 5;
+            for (let i = 1; i < 5; i++) {
+                ctx.beginPath();
+                ctx.arc(
+                    pipe.x - 3 + rivetSpacing * i,
+                    pipe.topHeight - 12,
+                    2.5,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.fill();
+            }
         }
 
-        // Draw bottom pipe if it exists
+        // Draw bottom pipe
         if (pipe.bottomY < canvas.height) {
-            ctx.fillStyle = pipe.highlight ? '#f1c40f' : '#2ecc71';
+            // Main body with texture
+            ctx.fillStyle = rustPattern;
             ctx.fillRect(pipe.x, pipe.bottomY, pipeWidth, canvas.height - pipe.bottomY);
-            // Bottom decoration
-            ctx.fillStyle = '#27ae60';
-            ctx.fillRect(pipe.x - 5, pipe.bottomY, pipeWidth + 10, 20);
+
+            // Depth gradient
+            const depthGradient = ctx.createLinearGradient(
+                pipe.x, pipe.bottomY,
+                pipe.x, canvas.height
+            );
+            depthGradient.addColorStop(0, baseColor);
+            depthGradient.addColorStop(1, shadowColor);
+            
+            ctx.globalAlpha = 0.7;
+            ctx.fillStyle = depthGradient;
+            ctx.fillRect(pipe.x, pipe.bottomY, pipeWidth, canvas.height - pipe.bottomY);
+            ctx.globalAlpha = 1;
+
+            // Corrosion edges
+            ctx.fillStyle = rustHighlight;
+            ctx.beginPath();
+            ctx.roundRect(pipe.x - 5, pipe.bottomY, pipeWidth + 10, 25, [0, 0, 5, 5]);
+            ctx.fill();
+
+            // Rivets
+            ctx.fillStyle = '#5a5a5a';
+            const rivetSpacing = (pipeWidth + 10) / 5;
+            for (let i = 1; i < 5; i++) {
+                ctx.beginPath();
+                ctx.arc(
+                    pipe.x - 3 + rivetSpacing * i,
+                    pipe.bottomY + 12,
+                    2.5,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.fill();
+            }
         }
+
+        // Add surface rust details
+        ctx.fillStyle = 'rgba(191, 87, 0, 0.3)';
+        ctx.beginPath();
+        ctx.arc(
+            pipe.x + pipeWidth/2,
+            pipe.topHeight > 0 ? pipe.topHeight - 15 : pipe.bottomY + 15,
+            8,
+            0,
+            Math.PI * 2
+        );
+        ctx.fill();
     });
 }
 
