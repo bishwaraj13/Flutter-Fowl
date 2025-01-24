@@ -339,10 +339,88 @@
     </div>
 
 <script>
-
+let audioCtx = null; // Single AudioContext instance
 let isReady = false;
 let buildings = [];
 let greeneryBushes = [];
+
+
+function initAudioContext() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+function playBirdSound() {
+    if (!audioCtx) initAudioContext();
+    
+    const now = audioCtx.currentTime;
+    const gainNode = audioCtx.createGain();
+    const filter = audioCtx.createBiquadFilter();
+    
+    // Signal chain
+    filter.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    // Ultra-soft settings
+    gainNode.gain.value = 0.1; // Very low volume
+    filter.type = 'lowpass';
+    filter.frequency.value = 2000; // Reduce high frequencies
+
+    // Gentle oscillator
+    const osc = audioCtx.createOscillator();
+    osc.connect(filter);
+    
+    // Softer frequency range with slight variation
+    const baseFreq = 600 + Math.random() * 150; // Lower frequency range
+    osc.frequency.setValueAtTime(baseFreq, now);
+    osc.frequency.linearRampToValueAtTime(baseFreq * 0.95, now + 0.08); // Subtle pitch drop
+
+    // Smooth envelope
+    gainNode.gain.setValueAtTime(0.08, now); // Quieter attack
+    gainNode.gain.linearRampToValueAtTime(0, now + 0.1); // Smoother decay
+
+    osc.type = 'sine';
+    osc.start(now);
+    osc.stop(now + 0.1); // Shorter duration
+
+    // Cleanup
+    osc.onended = () => {
+        osc.disconnect();
+        filter.disconnect();
+        gainNode.disconnect();
+    };
+}
+
+// Gentle game over sound
+function playGameOverSound() {
+    if (!audioCtx) initAudioContext();
+    
+    const now = audioCtx.currentTime;
+    const gainNode = audioCtx.createGain();
+    gainNode.connect(audioCtx.destination);
+    
+    const osc = audioCtx.createOscillator();
+    osc.connect(gainNode);
+    
+    // Soft low frequency
+    osc.frequency.value = 220;
+    gainNode.gain.value = 0.08;
+    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+    
+    osc.start();
+    osc.stop(now + 0.4);
+    
+    // Cleanup
+    osc.onended = () => {
+        osc.disconnect();
+        gainNode.disconnect();
+    };
+}
+
 
 const gameContainer = document.getElementById('gameContainer');
 const canvas = document.getElementById('gameCanvas');
@@ -510,14 +588,14 @@ document.addEventListener('keydown', (e) => {
     }
     if ((e.code === 'Space' || e.key === 'ArrowUp') && !gameOver && gameStarted) {
         bird.velocity = jump;
-        playTone(330, 50);
+        playBirdSound();
     }
 });
 
 canvas.addEventListener('click', () => {
     if (gameStarted && !gameOver) {
         bird.velocity = jump;
-        playTone(330, 50);
+        playBirdSound();
     }
 });
 
@@ -529,13 +607,13 @@ function handleJump(e) {
         isReady = false;
         document.getElementById('startPrompt').style.display = 'none';
         bird.velocity = jump;
-        playTone(330, 50);
+        playBirdSound();
         return;
     }
     
     if (gameStarted && !gameOver) {
         bird.velocity = jump;
-        playTone(330, 50);
+        playBirdSound();
     }
 }
 
@@ -584,7 +662,7 @@ function updateGame() {
                     localStorage.setItem('flutterHighScore', highScore);
                 }
                 pipe.passed = true;
-                playTone(pipe.highlight ? 880 : 523, 100);
+                playBirdSound();
             }
 
             if (checkCollision(pipe)) {
@@ -874,7 +952,7 @@ function showGameOverScreen() {
     gameOverScreen.style.display = 'flex';
     finalScore.textContent = score;
     updateHighScoreDisplay();
-    playTone(110, 500);
+    playGameOverSound(); // Use new gentle sound
 }
 </script>
 </body>
