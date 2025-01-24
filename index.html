@@ -921,18 +921,31 @@ const rustPattern = (() => {
 
 function drawPipes() {
     pipes.forEach(pipe => {
-        // Rusty metal colors
-        const baseColor = pipe.highlight ? '#f95e10' : '#8c4a32';
-        const shadowColor = pipe.highlight ? '#6d2600' : '#542915';
-        const rustHighlight = pipe.highlight ? '#ff7b4a' : '#b35738';
+        // Steel pipe colors
+        const isSteelPipe = pipe.highlight;
+        const baseColor = isSteelPipe ? '#bdc3c7' : '#8c4a32';
+        const shadowColor = isSteelPipe ? '#7f8c8d' : '#542915';
+        const highlightColor = isSteelPipe ? '#ecf0f1' : '#b35738';
 
         // Draw top pipe
         if (pipe.topHeight > 0) {
-            // Main body with texture
-            ctx.fillStyle = rustPattern;
+            // Steel pipe texture
+            if (isSteelPipe) {
+                // Solid base color with metallic gradient
+                const steelGradient = ctx.createLinearGradient(
+                    pipe.x, 0,
+                    pipe.x + pipeWidth, 0
+                );
+                steelGradient.addColorStop(0, baseColor);
+                steelGradient.addColorStop(0.5, highlightColor);
+                steelGradient.addColorStop(1, baseColor);
+                ctx.fillStyle = steelGradient;
+            } else {
+                ctx.fillStyle = rustPattern;
+            }
             ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
 
-            // Depth gradient
+            // Depth effects
             const depthGradient = ctx.createLinearGradient(
                 pipe.x, 0,
                 pipe.x, pipe.topHeight
@@ -940,40 +953,65 @@ function drawPipes() {
             depthGradient.addColorStop(0, shadowColor);
             depthGradient.addColorStop(1, baseColor);
             
-            ctx.globalAlpha = 0.7;
+            ctx.globalAlpha = isSteelPipe ? 0.8 : 0.7;
             ctx.fillStyle = depthGradient;
             ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
             ctx.globalAlpha = 1;
 
-            // Corrosion edges
-            ctx.fillStyle = rustHighlight;
+            // Pipe edges (clean for steel)
+            ctx.fillStyle = highlightColor;
             ctx.beginPath();
             ctx.roundRect(pipe.x - 5, pipe.topHeight - 25, pipeWidth + 10, 25, [5, 5, 0, 0]);
             ctx.fill();
 
-            // Rivets
-            ctx.fillStyle = '#5a5a5a';
+            // Steel rivets (clean and shiny)
+            ctx.fillStyle = isSteelPipe ? '#95a5a6' : '#5a5a5a';
             const rivetSpacing = (pipeWidth + 10) / 5;
             for (let i = 1; i < 5; i++) {
                 ctx.beginPath();
                 ctx.arc(
                     pipe.x - 3 + rivetSpacing * i,
                     pipe.topHeight - 12,
-                    2.5,
+                    isSteelPipe ? 3 : 2.5,
                     0,
                     Math.PI * 2
                 );
+                // Add rivet shine
+                if (isSteelPipe) {
+                    const gradient = ctx.createRadialGradient(
+                        pipe.x - 3 + rivetSpacing * i,
+                        pipe.topHeight - 12,
+                        0,
+                        pipe.x - 3 + rivetSpacing * i,
+                        pipe.topHeight - 12,
+                        3
+                    );
+                    gradient.addColorStop(0, '#ffffff');
+                    gradient.addColorStop(1, '#95a5a6');
+                    ctx.fillStyle = gradient;
+                }
                 ctx.fill();
             }
         }
 
-        // Draw bottom pipe
+        // Draw bottom pipe (similar changes as top pipe)
         if (pipe.bottomY < canvas.height) {
-            // Main body with texture
-            ctx.fillStyle = rustPattern;
+            // Steel pipe texture
+            if (isSteelPipe) {
+                const steelGradient = ctx.createLinearGradient(
+                    pipe.x, pipe.bottomY,
+                    pipe.x + pipeWidth, pipe.bottomY
+                );
+                steelGradient.addColorStop(0, baseColor);
+                steelGradient.addColorStop(0.5, highlightColor);
+                steelGradient.addColorStop(1, baseColor);
+                ctx.fillStyle = steelGradient;
+            } else {
+                ctx.fillStyle = rustPattern;
+            }
             ctx.fillRect(pipe.x, pipe.bottomY, pipeWidth, canvas.height - pipe.bottomY);
 
-            // Depth gradient
+            // Depth effects
             const depthGradient = ctx.createLinearGradient(
                 pipe.x, pipe.bottomY,
                 pipe.x, canvas.height
@@ -981,44 +1019,58 @@ function drawPipes() {
             depthGradient.addColorStop(0, baseColor);
             depthGradient.addColorStop(1, shadowColor);
             
-            ctx.globalAlpha = 0.7;
+            ctx.globalAlpha = isSteelPipe ? 0.8 : 0.7;
             ctx.fillStyle = depthGradient;
             ctx.fillRect(pipe.x, pipe.bottomY, pipeWidth, canvas.height - pipe.bottomY);
             ctx.globalAlpha = 1;
 
-            // Corrosion edges
-            ctx.fillStyle = rustHighlight;
+            // Pipe edges (clean for steel)
+            ctx.fillStyle = highlightColor;
             ctx.beginPath();
             ctx.roundRect(pipe.x - 5, pipe.bottomY, pipeWidth + 10, 25, [0, 0, 5, 5]);
             ctx.fill();
 
-            // Rivets
-            ctx.fillStyle = '#5a5a5a';
+            // Steel rivets (clean and shiny)
+            ctx.fillStyle = isSteelPipe ? '#95a5a6' : '#5a5a5a';
             const rivetSpacing = (pipeWidth + 10) / 5;
             for (let i = 1; i < 5; i++) {
                 ctx.beginPath();
                 ctx.arc(
                     pipe.x - 3 + rivetSpacing * i,
                     pipe.bottomY + 12,
-                    2.5,
+                    isSteelPipe ? 3 : 2.5,
                     0,
                     Math.PI * 2
                 );
+                // Add rivet shine
+                if (isSteelPipe) {
+                    const gradient = ctx.createRadialGradient(
+                        pipe.x - 3 + rivetSpacing * i,
+                        pipe.bottomY + 12,
+                        0,
+                        pipe.x - 3 + rivetSpacing * i,
+                        pipe.bottomY + 12,
+                        3
+                    );
+                    gradient.addColorStop(0, '#ffffff');
+                    gradient.addColorStop(1, '#95a5a6');
+                    ctx.fillStyle = gradient;
+                }
                 ctx.fill();
             }
         }
 
-        // Add surface rust details
-        ctx.fillStyle = 'rgba(191, 87, 0, 0.3)';
-        ctx.beginPath();
-        ctx.arc(
-            pipe.x + pipeWidth/2,
-            pipe.topHeight > 0 ? pipe.topHeight - 15 : pipe.bottomY + 15,
-            8,
-            0,
-            Math.PI * 2
-        );
-        ctx.fill();
+        // Add subtle reflection line for steel pipes
+        if (isSteelPipe) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(pipe.x + pipeWidth/2, 0);
+            ctx.lineTo(pipe.x + pipeWidth/2, pipe.topHeight);
+            ctx.moveTo(pipe.x + pipeWidth/2, pipe.bottomY);
+            ctx.lineTo(pipe.x + pipeWidth/2, canvas.height);
+            ctx.stroke();
+        }
     });
 }
 
