@@ -631,54 +631,52 @@ function drawBird() {
     ctx.arc(bird.x, bird.y, bird.size, 0, Math.PI * 2);
     ctx.fill();
     
-    // Body outline (unchanged)
+    // Body outline
     ctx.strokeStyle = '#c0392b';
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Corrected reversed beak (proper left orientation)
+    // Corrected beak (now facing right)
     ctx.fillStyle = '#e67e22';
     ctx.beginPath();
-    ctx.moveTo(bird.x - bird.size, bird.y);  // Start at left edge of body
-    // Draw beak points in reverse order to maintain triangle orientation
-    ctx.lineTo(bird.x - bird.size * 1.8, bird.y + bird.size * 0.3);  // Bottom point first
-    ctx.lineTo(bird.x - bird.size * 1.8, bird.y - bird.size * 0.3);  // Then top point
+    ctx.moveTo(bird.x + bird.size, bird.y);  // Start at RIGHT edge of body
+    ctx.lineTo(bird.x + bird.size * 1.8, bird.y + bird.size * 0.3);
+    ctx.lineTo(bird.x + bird.size * 1.8, bird.y - bird.size * 0.3);
     ctx.closePath();
     ctx.fill();
 
-    // Wing (moved to right side and flipped)
+    // Wing (moved to LEFT side)
     ctx.fillStyle = '#d35400';
     ctx.beginPath();
     const wingY = bird.y + bird.size * 0.4;
     const wingCurve = Math.sin(Date.now() * 0.01) * 5;
-    // Flipped X-axis directions and control points
     ctx.quadraticCurveTo(
-        bird.x + bird.size * 0.5, wingY + wingCurve,  // Changed - to +
-        bird.x + bird.size, wingY  // Changed - to +
+        bird.x - bird.size * 0.5, wingY + wingCurve,  // Control point LEFT
+        bird.x - bird.size, wingY                     // End point LEFT
     );
     ctx.quadraticCurveTo(
-        bird.x + bird.size * 0.2, wingY - bird.size * 0.5,  // Changed - to +
+        bird.x - bird.size * 0.2, wingY - bird.size * 0.5,  // Control point LEFT
         bird.x, bird.y
     );
     ctx.fill();
 
-    // Eye (moved to right side)
+    // Eye (correctly placed on right side)
     ctx.fillStyle = 'white';
     ctx.beginPath();
-    ctx.arc(bird.x + bird.size * 0.4, bird.y - bird.size * 0.3, bird.size * 0.2, 0, Math.PI * 2);  // Changed - to +
+    ctx.arc(bird.x + bird.size * 0.4, bird.y - bird.size * 0.3, bird.size * 0.2, 0, Math.PI * 2);
     ctx.fill();
     
     ctx.fillStyle = 'black';
     ctx.beginPath();
-    ctx.arc(bird.x + bird.size * 0.3, bird.y - bird.size * 0.3, bird.size * 0.1, 0, Math.PI * 2);  // Changed - to +
+    ctx.arc(bird.x + bird.size * 0.3, bird.y - bird.size * 0.3, bird.size * 0.1, 0, Math.PI * 2);
     ctx.fill();
 
-    // Tail feathers (moved to right side)
+    // Tail feathers (moved to LEFT side)
     ctx.fillStyle = '#d35400';
     ctx.beginPath();
-    ctx.moveTo(bird.x + bird.size * 1.2, bird.y);  // Changed - to +
-    ctx.lineTo(bird.x + bird.size * 1.8, bird.y - bird.size * 0.4);  // Flipped X-axis
-    ctx.lineTo(bird.x + bird.size * 1.8, bird.y + bird.size * 0.4);
+    ctx.moveTo(bird.x - bird.size * 1.2, bird.y);  // Start LEFT of body
+    ctx.lineTo(bird.x - bird.size * 1.8, bird.y - bird.size * 0.4);
+    ctx.lineTo(bird.x - bird.size * 1.8, bird.y + bird.size * 0.4);
     ctx.closePath();
     ctx.fill();
 }
