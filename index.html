@@ -36,6 +36,7 @@
             box-shadow: 0 0 30px rgba(0,0,0,0.5);
             background: #3498db;
             overflow: hidden;
+            background: transparent;
         }
 
         .screen {
@@ -323,18 +324,40 @@
     </div>
 
 <script>
+let buildings = [];
+let greeneryBushes = [];
+
 const gameContainer = document.getElementById('gameContainer');
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 let highScore = localStorage.getItem('flutterHighScore') || 0;
 updateHighScoreDisplay();
 
-// Set canvas size based on container
 function resizeCanvas() {
     const rect = gameContainer.getBoundingClientRect();
     canvas.width = rect.width;
     canvas.height = rect.height;
+
+    // Generate buildings
+    buildings = [];
+    let x = 0;
+    while (x < canvas.width) {
+        const width = Math.random() * 50 + 30;
+        const height = Math.random() * (canvas.height * 0.3) + (canvas.height * 0.1);
+        buildings.push({ x: x, width: width, height: height });
+        x += width + Math.random() * 50;
+    }
+
+    // Generate greenery bushes
+    greeneryBushes = [];
+    let bushX = 0;
+    while (bushX < canvas.width) {
+        const size = Math.random() * 20 + 10;
+        greeneryBushes.push({ x: bushX, size: size });
+        bushX += size + Math.random() * 30;
+    }
 }
+
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
@@ -534,13 +557,58 @@ function updateGame() {
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
+    // Draw sky gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, '#87CEEB');
+    gradient.addColorStop(1, '#4682B4');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw city skyline
+    ctx.fillStyle = '#2c3e50';
+    buildings.forEach(building => {
+        // Draw building
+        ctx.fillRect(building.x, canvas.height - building.height, building.width, building.height);
+        
+        // Draw windows
+        ctx.fillStyle = '#34495e';
+        for (let y = canvas.height - building.height + 10; y < canvas.height - 5; y += 15) {
+            for (let x = building.x + 5; x < building.x + building.width - 5; x += 10) {
+                if (Math.random() < 0.7) {
+                    ctx.fillRect(x, y, 5, 5);
+                }
+            }
+        }
+        ctx.fillStyle = '#2c3e50';
+    });
+
+    // Draw greenery base
+    ctx.fillStyle = '#2ecc71';
+    ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
+
+    // Draw bushes along the top of the grass
+    ctx.fillStyle = '#27ae60';
+    greeneryBushes.forEach(bush => {
+        ctx.beginPath();
+        // Draw bush as a circle emerging from the grass
+        ctx.arc(
+            bush.x,                   // X position
+            canvas.height - 30,       // Center at top of grass
+            bush.size,                // Radius
+            Math.PI,                  // Start angle (180 degrees)
+            Math.PI * 2               // End angle (360 degrees)
+        );
+        ctx.fill();
+    });
+
+    // Existing star drawing code
     ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
     for(let i = 0; i < 50; i++) {
         ctx.beginPath();
         ctx.arc(Math.random()*canvas.width, Math.random()*canvas.height, 2, 0, Math.PI*2);
         ctx.fill();
     }
-    
+
     if (gameStarted && !gameOver) {
         updateGame();
         drawPipes();
