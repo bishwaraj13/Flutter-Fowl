@@ -1,8 +1,116 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Flutter Fowl</title>
     <style>
+        * {
+            touch-action: manipulation;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2c3e50 100%);
+            font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100vmin;
+            height: 150vmin;
+            max-width: 400px;
+            max-height: 600px;
+        }
+
+        #game {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            background: #3498db;
+            overflow: hidden;
+        }
+
+        .screen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(241, 196, 15, 0.3);
+            border: 3px solid #f1c40f;
+            text-align: center;
+            transform: scale(1);
+            animation: screenEntry 0.5s ease-out;
+            z-index: 2;
+        }
+
+        @keyframes screenEntry {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .game-title {
+            color: #f1c40f;
+            font-size: 3em;
+            text-shadow: 3px 3px 0 rgba(0,0,0,0.3);
+            transform: rotate(-5deg);
+            animation: bounce 2s infinite;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 1.1em;
+            background: #2ecc71;
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.1s;
+            font-family: inherit;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        #controls {
+            color: #f1c40f;
+            font-size: 1.1em;
+            margin: 15px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation: floatText 2s ease-in-out infinite;
+        }
+
+        @media (max-width: 600px) {
+            .game-title {
+                font-size: 2.5em;
+            }
+            
+            button {
+                padding: 15px 30px;
+                font-size: 1.2em;
+            }
+            
+            #controls {
+                font-size: 1em;
+            }
+        }
+
         /* Add cloud styles */
         .clouds {
             position: absolute;
@@ -189,42 +297,56 @@
     </style>
 </head>
 <body>
-    <div id="startScreen" class="screen">
-        <div class="game-title">
-            <div class="sparkles" id="startSparkles"></div>
-            FLUTTER FOWL
+    <div id="gameContainer">
+        <div id="startScreen" class="screen">
+            <div class="game-title">
+                <div class="sparkles" id="startSparkles"></div>
+                FLUTTER FOWL
+            </div>
+            <div id="highScore">High Score: <span id="highScoreValue">0</span></div>
+            <div id="controls">🔼 TAP or SPACE to FLAP!</div>
+            <button id="startButton">Start Game</button>
         </div>
-        <div id="highScore">High Score: <span id="highScoreValue">0</span></div>
-        <div id="controls">🔼 SPACE or UP ARROW to FLAP!</div>
-        <button id="startButton">Start Game</button>
-    </div>
 
-    <div id="gameOverScreen" class="screen">
-        <div class="game-title">GAME OVER</div>
-        <div id="gameOverMessage">Better luck next time!</div>
-        <div>Your Score: <span id="finalScore">0</span></div>
-        <div>High Score: <span id="finalHighScore">0</span></div>
-        <button id="replayButton">Play Again</button>
-    </div>
+        <div id="gameOverScreen" class="screen">
+            <div class="game-title">GAME OVER</div>
+            <div id="gameOverMessage">Better luck next time!</div>
+            <div>Your Score: <span id="finalScore">0</span></div>
+            <div>High Score: <span id="finalHighScore">0</span></div>
+            <button id="replayButton">Play Again</button>
+        </div>
 
-    <div id="game" width="400" height="600">
-        <div class="clouds" id="clouds"></div>
-        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        <div id="game">
+            <div class="clouds" id="clouds"></div>
+            <canvas id="gameCanvas"></canvas>
+        </div>
     </div>
 
 <script>
+const gameContainer = document.getElementById('gameContainer');
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 let highScore = localStorage.getItem('flutterHighScore') || 0;
 updateHighScoreDisplay();
 
-// Game state
+// Set canvas size based on container
+function resizeCanvas() {
+    const rect = gameContainer.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// Modified bird size to be responsive
 let bird = {
-    x: 50,
-    y: 300,
+    x: canvas.width * 0.15,
+    y: canvas.height / 2,
     velocity: 0,
-    size: 20
+    size: canvas.width * 0.05
 };
+
+// Rest of game variables
 const levels = [
     { // Level 1 - Easier
         scoreRequired: 0,
@@ -350,6 +472,20 @@ canvas.addEventListener('click', () => {
     }
 });
 
+// Modified event listeners for mobile
+function handleJump() {
+    if (gameStarted && !gameOver) {
+        bird.velocity = jump;
+        playTone(330, 50);
+    }
+}
+
+canvas.addEventListener('click', handleJump);
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    handleJump();
+});
+
 // Modified game functions
 function updateGame() {
     if (!gameStarted || gameOver) return;
@@ -439,6 +575,17 @@ function getCurrentLevel() {
     return levels[0];
 }
 
+// Modified collision detection for responsive sizes
+function checkCollision(pipe) {
+    const pipeX = pipe.x * (canvas.width / 400); // Scale pipe positions
+    const pipeWidthAdjusted = pipeWidth * (canvas.width / 400);
+    return (bird.x + bird.size > pipeX && 
+            bird.x - bird.size < pipeX + pipeWidthAdjusted && 
+            (bird.y - bird.size < pipe.topHeight || 
+             bird.y + bird.size > pipe.bottomY));
+}
+
+// Modified pipe creation for responsive sizes
 function createPipe() {
     const level = getCurrentLevel();
     const gapPosition = Math.random() * (canvas.height - level.pipeGap - 100) + 50;
