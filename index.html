@@ -188,8 +188,28 @@ let horizontalPipes = {
 };
 
 /* ======================== */
+/*  GAME CONSTANTS          */
+/* ======================== */
+const PHYSICS = {
+    GRAVITY: 0.5,
+    JUMP_FORCE: -8,
+    TERMINAL_VELOCITY: 15
+};
+
+const COLORS = {
+    SKY_TOP: '#87CEEB',
+    SKY_BOTTOM: '#4682B4',
+    BIRD_BASE: '#f1c40f'
+};
+
+/* ======================== */
 /*  CORE GAME FUNCTIONS     */
 /* ======================== */
+
+/**
+ * Main game loop handling all rendering and updates
+ * @param {number} timestamp - DOMHighResTimeStamp from requestAnimationFrame
+ */
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
@@ -268,6 +288,10 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
+/**
+ * Updates game state including physics, collisions, and scoring
+ * @param {number} deltaTime - Time since last frame in seconds
+ */
 function updateGame() {
     const now = Date.now();
     const deltaTime = (now - lastFrameTime) / 1000; // Time in seconds
@@ -276,7 +300,7 @@ function updateGame() {
     if (!gameStarted || gameOver) return;
     
     if (!isReady) {
-        bird.velocity += gravity;
+        bird.velocity += PHYSICS.GRAVITY;
         bird.y += bird.velocity;
 
         if (pipes.length === 0 || pipes[pipes.length-1].x < canvas.width - getCurrentLevel().pipeSpacing) {
@@ -399,6 +423,11 @@ function getCurrentLevel() {
 /* ======================== */
 /*  PIPES MANAGEMENT        */
 /* ======================== */
+
+/**
+ * Creates a new pipe configuration
+ * @returns {Object} Pipe object with position and collision properties
+ */
 function createPipe() {
     const level = getCurrentLevel();
     let topHeight, bottomY;
@@ -432,6 +461,10 @@ function createPipe() {
     };
 }
 
+/**
+ * Draws all pipes on the canvas
+ * @param {CanvasRenderingContext2D} ctx - Canvas drawing context
+ */
 function drawPipes() {
     pipes.forEach(pipe => {
         // Steel pipe colors
@@ -756,11 +789,17 @@ function drawSmoke() {
 /*  AUDIO MANAGEMENT        */
 /* ======================== */
 function initAudioContext() {
-    if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
+    try {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    } catch (error) {
+        console.error('Audio context error:', error);
+        // Fallback to silent mode
+        audioCtx = { createGain: () => ({ connect: () => {} }) };
     }
 }
 
@@ -825,6 +864,10 @@ function playPointSound() {
     osc.stop(now + 0.15);
 }
 
+/**
+ * Plays sound effect for steel pipe collision
+ * @param {number} [volume=0.15] - Optional volume level (0-1)
+ */
 function playSteelPipeSound() {
     if (!audioCtx) initAudioContext();
     
@@ -1045,6 +1088,11 @@ function drawBird() {
     ctx.fill();
 }
 
+/**
+ * Checks for collision between bird and a pipe
+ * @param {Object} pipe - Pipe object to check against
+ * @returns {boolean} True if collision detected
+ */
 function checkCollision(pipe) {
     // X-axis collision check
     const xCollision = bird.x + bird.size > pipe.x && 
@@ -1091,13 +1139,13 @@ function handleJump(e) {
     if (isReady) {
         isReady = false;
         document.getElementById('startPrompt').style.display = 'none';
-        bird.velocity = jump;
+        bird.velocity = PHYSICS.JUMP_FORCE;
         playBirdSound();
         return;
     }
     
     if (gameStarted && !gameOver) {
-        bird.velocity = jump;
+        bird.velocity = PHYSICS.JUMP_FORCE;
         playBirdSound();
     }
 }
@@ -1156,14 +1204,14 @@ document.addEventListener('keydown', (e) => {
         handleStartEvent();
     }
     if ((e.code === 'Space' || e.key === 'ArrowUp') && !gameOver && gameStarted) {
-        bird.velocity = jump;
+        bird.velocity = PHYSICS.JUMP_FORCE;
         playBirdSound();
     }
 });
 
 canvas.addEventListener('click', () => {
     if (gameStarted && !gameOver) {
-        bird.velocity = jump;
+        bird.velocity = PHYSICS.JUMP_FORCE;
         playBirdSound();
     }
 });
