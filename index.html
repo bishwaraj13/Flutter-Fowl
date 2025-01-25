@@ -1009,34 +1009,6 @@ function showGameOverScreen() {
     updateHighScoreDisplay();
     playGameOverSound();
     
-    const gameUrl = 'https://bishwaraj13.github.io/Flutter-Fowl';
-    const shareButton = document.getElementById('shareButton');
-    const shareText = `I scored ${score} points on Flutter Fowl! 🐦✨ Can you beat my score? ${gameUrl} #FlutterFowl #BrowserGame`;
-
-    // Set up modern share functionality
-    shareButton.onclick = async (e) => {
-        e.preventDefault();
-        
-        try {
-            if (navigator.share) {
-                // Mobile devices with share support
-                await navigator.share({
-                    title: 'Flutter Fowl Score',
-                    text: shareText,
-                    // url: gameUrl
-                });
-            } else {
-                // Fallback for desktop browsers
-                await navigator.clipboard.writeText(shareText);
-                alert('Copied score to clipboard! You can paste it anywhere.');
-            }
-        } catch (err) {
-            console.error('Sharing failed:', err);
-            // Secondary fallback if clipboard fails
-            alert(`Here's your score to share:\n\n${shareText}`);
-        }
-    };
-
     // Reset horizontal pipes
     horizontalPipes.top.x = 0;
     horizontalPipes.bottom.x = 0;
@@ -1188,6 +1160,9 @@ function initEventListeners() {
 
     // Replay button
     document.getElementById('replayButton').addEventListener('click', resetGame);
+
+    // Share button
+    document.getElementById('shareButton').addEventListener('click', shareMyScore);
 }
 
 function handleJump(e) {
@@ -1211,6 +1186,22 @@ function handleJump(e) {
 function handleStartEvent() {
     if (!gameStarted) startGame();
     else if (gameOver) resetGame();
+}
+
+function shareMyScore() {
+    const gameUrl = 'https://bit.ly/3PS3PXA';
+    const shareText = `I scored ${score} points on Flutter Fowl! 🐦✨ Can you beat my score? ${gameUrl} #FlutterFowl #BrowserGame`;
+
+    if (navigator.share) {
+        navigator.share({
+            title: 'Flutter Fowl Score',
+            text: shareText,
+        });
+    } else {
+        navigator.clipboard.writeText(shareText)
+            .then(() => alert('Copied score to clipboard! You can paste it anywhere.'))
+            .catch(err => console.error('Copy failed:', err));
+    }
 }
 
 /* ======================== */
