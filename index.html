@@ -34,10 +34,7 @@
             </div>
             <div id="gameOverMessage">Wings need repairs!</div>
             <button id="replayButton">FLY AGAIN</button>
-            <a id="shareButton" target="_blank" class="share-button">
-                SHARE ON 
-                <svg viewBox="0 0 24 24" class="x-logo"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            </a>
+            <button id="shareButton">Share My Score</button>
         </div>
 
         <div class="start-prompt" id="startPrompt">TAP or SPACE/UP to START!</div>
@@ -1013,16 +1010,33 @@ function showGameOverScreen() {
     playGameOverSound();
     
     const gameUrl = 'https://bishwaraj13.github.io/Flutter-Fowl';
-    // Update share button URL
     const shareButton = document.getElementById('shareButton');
-    const shareText = encodeURIComponent(
-        `I scored ${score} points on Flutter Fowl! 🐦✨ ` +
-        `Can you beat my score? ` +
-        `#HTML5Game #WebGame ${gameUrl}`
-        );
+    const shareText = `I scored ${score} points on Flutter Fowl! 🐦✨ Can you beat my score? ${gameUrl} #HTML5Game #WebGame`;
 
-    shareButton.href = `https://x.com/share?url=${shareText}`;
-    
+    // Set up modern share functionality
+    shareButton.onclick = async (e) => {
+        e.preventDefault();
+        
+        try {
+            if (navigator.share) {
+                // Mobile devices with share support
+                await navigator.share({
+                    title: 'Flutter Fowl Score',
+                    text: shareText,
+                    url: gameUrl
+                });
+            } else {
+                // Fallback for desktop browsers
+                await navigator.clipboard.writeText(shareText);
+                alert('Copied score to clipboard! You can paste it anywhere.');
+            }
+        } catch (err) {
+            console.error('Sharing failed:', err);
+            // Secondary fallback if clipboard fails
+            alert(`Here's your score to share:\n\n${shareText}`);
+        }
+    };
+
     // Reset horizontal pipes
     horizontalPipes.top.x = 0;
     horizontalPipes.bottom.x = 0;
