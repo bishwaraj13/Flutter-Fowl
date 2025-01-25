@@ -525,6 +525,69 @@ function playBirdSound() {
     };
 }
 
+function playPointSound() {
+    if (!audioCtx) initAudioContext();
+    
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    // Bright, positive sound
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(880, now);
+    osc.frequency.exponentialRampToValueAtTime(1320, now + 0.1);
+    
+    gainNode.gain.setValueAtTime(0.15, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+    
+    osc.connect(gainNode).connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.15);
+}
+
+function playSteelPipeSound() {
+    if (!audioCtx) initAudioContext();
+    
+    const now = audioCtx.currentTime;
+    const mainOsc = audioCtx.createOscillator();
+    const secondOsc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    // Metallic "cling" effect
+    mainOsc.type = 'triangle';
+    mainOsc.frequency.setValueAtTime(1046.50, now); // High C
+    mainOsc.detune.setValueAtTime(30, now);
+    
+    secondOsc.type = 'square';
+    secondOsc.frequency.setValueAtTime(523.25, now); // Middle C
+    
+    // Create slight phasing effect
+    const lfo = audioCtx.createOscillator();
+    lfo.frequency.value = 8;
+    const lfoGain = audioCtx.createGain();
+    lfoGain.gain.value = 40;
+    lfo.connect(lfoGain).connect(mainOsc.detune);
+    
+    // Envelope
+    gainNode.gain.setValueAtTime(0.2, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+    
+    // Connect nodes
+    mainOsc.connect(gainNode);
+    secondOsc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    // Start oscillators
+    mainOsc.start(now);
+    secondOsc.start(now);
+    lfo.start(now);
+    
+    // Cleanup
+    mainOsc.stop(now + 0.3);
+    secondOsc.stop(now + 0.3);
+    lfo.stop(now + 0.3);
+}
+
 function updateSmoke() {
     smokeParticles = smokeParticles.filter(particle => {
         particle.x += particle.vx;
@@ -902,8 +965,12 @@ function updateGame() {
                     localStorage.setItem('flutterHighScore', highScore);
                 }
                 pipe.passed = true;
-                playBirdSound();
-            }
+                if (pipe.highlight) {
+                    playSteelPipeSound();
+                } else {
+                    playPointSound();
+                }
+                        }
 
             if (checkCollision(pipe)) {
                 gameOver = true;
