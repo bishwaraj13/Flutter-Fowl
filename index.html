@@ -1019,6 +1019,73 @@ function updateHighScoreDisplay() {
     document.getElementById('finalHighScore').textContent = highScore;
 }
 
+async function createScoreImage() {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Canvas dimensions
+    canvas.width = 1200;
+    canvas.height = 630;
+
+    // Background gradient
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, '#1a2a6c');
+    gradient.addColorStop(1, '#b21f1f');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Game Title
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 72px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Fluttering Fowl', canvas.width/2, 150);
+
+    try {
+        // Load local SVG
+        const birdImg = await loadLocalImage('resources/frame-1d.svg');
+        
+        // Draw bird
+        const birdSize = 200;
+        ctx.drawImage(birdImg, canvas.width/2 - birdSize/2, 200, birdSize, birdSize);
+    } catch (err) {
+        console.error('Failed to draw bird:', err);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('🐦', canvas.width/2 - 30, 300); // Fallback emoji
+    }
+
+    // Score Text
+    ctx.font = 'bold 96px Arial';
+    ctx.fillStyle = '#ffd700';
+    ctx.fillText(`Score: ${score}`, canvas.width/2, 500);
+
+    return canvas.toDataURL('image/png');
+}
+
+function loadLocalImage(path) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        
+        // Important for local file handling
+        img.crossOrigin = 'anonymous';
+        
+        // Convert SVG path to data URL
+        fetch(path)
+            .then(response => response.blob())
+            .then(blob => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    img.src = reader.result;
+                    img.onload = () => resolve(img);
+                };
+                reader.readAsDataURL(blob);
+            })
+            .catch(err => {
+                console.error('File loading failed:', err);
+                reject(new Error('Could not load local image'));
+            });
+    });
+}
+
 function createScoreNotification(birdX, birdY) {
     const container = document.getElementById('notificationsContainer');
     const gameContainer = document.getElementById('gameContainer');
@@ -1188,19 +1255,32 @@ function handleStartEvent() {
     else if (gameOver) resetGame();
 }
 
-function shareMyScore() {
-    const gameUrl = 'https://bit.ly/3PS3PXA';
-    const shareText = `I scored ${score} points on Flutter Fowl! 🐦✨ Can you beat my score? ${gameUrl} #FlutterFowl #BrowserGame`;
+async function shareMyScore() {
+    try {
+        const imageUrl = await createScoreImage();
+        const gameUrl = 'https://bit.ly/3PS3PXA';
+        const shareText = `I scored ${score} points on Flutter Fowl! 🐦✨ Can you beat my score? ${gameUrl} #FlutterFowl #BrowserGame`;
 
-    if (navigator.share) {
-        navigator.share({
-            title: 'Flutter Fowl Score',
-            text: shareText,
-        });
-    } else {
-        navigator.clipboard.writeText(shareText)
-            .then(() => alert('Copied score to clipboard! You can paste it anywhere.'))
-            .catch(err => console.error('Copy failed:', err));
+        if (navigator.share) {
+            // Convert data URL to blob
+            const blob = await (await fetch(imageUrl)).blob();
+            const file = new File([blob], 'score.png', { type: 'image/png' });
+
+            await navigator.share({
+                title: 'Flutter Fowl Score',
+                text: shareText,
+                files: [file]
+            });
+        } else {
+            // Fallback for desktop
+            const link = document.createElement('a');
+            link.download = 'flutter-fowl-score.png';
+            link.href = imageUrl;
+            link.click();
+        }
+    } catch (err) {
+        console.error('Sharing failed:', err);
+        alert('Share failed: ' + err.message);
     }
 }
 
