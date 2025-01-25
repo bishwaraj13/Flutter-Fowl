@@ -1020,10 +1020,6 @@ function updateHighScoreDisplay() {
 }
 
 async function createScoreImage() {
-    // Add this to createScoreImage()
-    ctx.font = '32px Arial';
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(gameUrl, canvas.width/2, 570);
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     
@@ -1272,7 +1268,6 @@ async function shareMyScore() {
             
             await navigator.share({
                 title: 'Flutter Fowl Score',
-                text: shareText,  // This will show in some apps
                 files: [file]
             });
         } else {
@@ -1281,14 +1276,6 @@ async function shareMyScore() {
             link.download = 'flutter-fowl-score.png';
             link.href = imageUrl;
             link.click();
-
-            // Copy text to clipboard
-            try {
-                await navigator.clipboard.writeText(shareText);
-                alert('Image downloaded & text copied to clipboard! 🎉');
-            } catch (err) {
-                alert(`Image downloaded! Here's your text to share:\n\n${shareText}`);
-            }
         }
     } catch (err) {
         console.error('Sharing failed:', err);
