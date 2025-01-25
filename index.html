@@ -213,8 +213,8 @@ function gameLoop() {
     
     // Draw sky gradient
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, '#87CEEB');
-    gradient.addColorStop(1, '#4682B4');
+    gradient.addColorStop(0, COLORS.SKY_TOP);
+    gradient.addColorStop(1, COLORS.SKY_BOTTOM);
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -1031,7 +1031,7 @@ function createSparkles(containerId) {
 /* ======================== */
 function drawBird() {
     // Bird body (main circle)
-    ctx.fillStyle = '#f1c40f';
+    ctx.fillStyle = COLORS.BIRD_BASE;
     ctx.beginPath();
     ctx.arc(bird.x, bird.y, bird.size, 0, Math.PI * 2);
     ctx.fill();
