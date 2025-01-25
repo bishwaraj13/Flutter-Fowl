@@ -56,7 +56,7 @@ const levels = [
         scoreRequired: 0,
         pipeSpeed: 1.2,
         pipeSpacing: 280,
-        goldenPipeChance: 1,
+        goldenPipeChance: 0,
         minSinglePipeHeight: 100,  // Minimum height for single pipes
         maxSinglePipeHeight: 300   // Maximum height for single pipes
     },
@@ -178,8 +178,6 @@ const rustPattern = (() => {
 /* ======================== */
 /*  PHYSICS CONSTANTS       */
 /* ======================== */
-const gravity = 0.5;
-const jump = -8;
 const pipeWidth = 50;
 
 let horizontalPipes = {
