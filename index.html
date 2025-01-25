@@ -1012,13 +1012,16 @@ function showGameOverScreen() {
     updateHighScoreDisplay();
     playGameOverSound();
     
+    const gameUrl = 'https://bishwaraj13.github.io/Flutter-Fowl';
     // Update share button URL
     const shareButton = document.getElementById('shareButton');
     const shareText = encodeURIComponent(
         `I scored ${score} points on Flutter Fowl! 🐦✨ ` +
-        `Can you beat my score?`
-    );
-    shareButton.href = `https://x.com/share?url=${encodeURIComponent(window.location.href)}&text=${shareText}`;
+        `Can you beat my score? ` +
+        `#HTML5Game #WebGame ${gameUrl}`
+        );
+
+    shareButton.href = `https://x.com/share?url=${shareText}`;
     
     // Reset horizontal pipes
     horizontalPipes.top.x = 0;
