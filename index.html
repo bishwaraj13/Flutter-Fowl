@@ -1020,45 +1020,50 @@ function updateHighScoreDisplay() {
 }
 
 async function createScoreImage() {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const gameCanvas = document.getElementById('gameCanvas');
+    const shareCanvas = document.createElement('canvas');
+    const ctx = shareCanvas.getContext('2d');
     
-    // Canvas dimensions
-    canvas.width = 1200;
-    canvas.height = 630;
+    // Share image dimensions (social media friendly)
+    shareCanvas.width = 1200;
+    shareCanvas.height = 630;
 
-    // Background gradient
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, '#1a2a6c');
-    gradient.addColorStop(1, '#b21f1f');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // High-quality scaling setup
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
 
-    // Game Title
+    // Calculate scaling to cover share canvas
+    const scale = Math.max(
+        shareCanvas.width / gameCanvas.width,
+        shareCanvas.height / gameCanvas.height
+    );
+    const scaledWidth = gameCanvas.width * scale;
+    const scaledHeight = gameCanvas.height * scale;
+    const x = (shareCanvas.width - scaledWidth) / 2;
+    const y = (shareCanvas.height - scaledHeight) / 2;
+
+    // Draw the actual game state
+    ctx.drawImage(gameCanvas, x, y, scaledWidth, scaledHeight);
+
+    // Dark overlay for text readability
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    ctx.fillRect(0, 0, shareCanvas.width, shareCanvas.height);
+
+    // Score text styling
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 72px Arial';
+    ctx.font = 'bold 72px "Arial Rounded MT Bold"';
     ctx.textAlign = 'center';
-    ctx.fillText('Fluttering Fowl', canvas.width/2, 150);
+    ctx.textBaseline = 'bottom';
+    
+    // Main score text
+    const mainText = `I scored ${score} points on Flutter Fowl! 🐦✨`;
+    ctx.fillText(mainText, shareCanvas.width/2, shareCanvas.height - 80);
 
-    try {
-        // Load local SVG
-        const birdImg = await loadLocalImage('resources/frame-1d.svg');
-        
-        // Draw bird
-        const birdSize = 200;
-        ctx.drawImage(birdImg, canvas.width/2 - birdSize/2, 200, birdSize, birdSize);
-    } catch (err) {
-        console.error('Failed to draw bird:', err);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillText('🐦', canvas.width/2 - 30, 300); // Fallback emoji
-    }
+    // Challenge text
+    ctx.font = 'bold 54px "Arial Rounded MT Bold"';
+    ctx.fillText('Can you beat my score?', shareCanvas.width/2, shareCanvas.height - 30);
 
-    // Score Text
-    ctx.font = 'bold 96px Arial';
-    ctx.fillStyle = '#ffd700';
-    ctx.fillText(`Score: ${score}`, canvas.width/2, 500);
-
-    return canvas.toDataURL('image/png');
+    return shareCanvas.toDataURL('image/png');
 }
 
 function loadLocalImage(path) {
