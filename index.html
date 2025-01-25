@@ -45,6 +45,143 @@
 
 <script>
 
+/* ======================== */
+/*  GAME STATE & ELEMENTS  */
+/* ======================== */
+const gameContainer = document.getElementById('gameContainer');
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const levels = [
+    { // Level 1 - Easy (alternating single pipes) 
+        scoreRequired: 0,
+        pipeSpeed: 1.2,
+        pipeSpacing: 280,
+        goldenPipeChance: 0,
+        minSinglePipeHeight: 100,  // Minimum height for single pipes
+        maxSinglePipeHeight: 300   // Maximum height for single pipes
+    },
+    { // Level 2 - Normal difficulty
+        scoreRequired: 5,
+        pipeSpeed: 1.5,
+        pipeGap: 200,
+        pipeSpacing: 250,
+        goldenPipeChance: 0.1
+    },
+    { // Level 3 - Medium difficulty
+        scoreRequired: 15,
+        pipeSpeed: 2,
+        pipeGap: 180,
+        pipeSpacing: 220,
+        goldenPipeChance: 0.15
+    },
+    { // Level 4 - Hard difficulty
+        scoreRequired: 25,
+        pipeSpeed: 2.5,
+        pipeGap: 160,
+        pipeSpacing: 200,
+        goldenPipeChance: 0.2
+    },
+    { // Level 5 - Expert
+        scoreRequired: 35,
+        pipeSpeed: 3,
+        pipeGap: 150,
+        pipeSpacing: 195,
+        goldenPipeChance: 0.25
+    }
+];
+const CLOUD_CONFIG = {
+  count: 8,
+  baseSpeed: 0.15,
+  sizeVariation: 0.3,
+  opacityRange: [0.3, 0.7]
+};
+const SMOKE_CONFIG = {
+    emissionRate: 30,         // Particles per second per pipe
+    maxParticles: 500,        // Reduced for performance
+    baseYOffset: 8,          
+    horizontalSpread: 25,
+    verticalSpeed: 1.2,      
+    startSize: [3, 6],       
+    sizeGrowth: 0.15,        
+    fadeRate: 0.02,          
+    swirlIntensity: 0.05     
+};
+
+let clouds = [];
+let buildings = [];
+let greeneryBushes = [];
+let pipes = [];
+let smokeParticles = [];
+let audioCtx = null;
+let highScore = localStorage.getItem('flutterHighScore') || 0;
+let score = 0;
+let gameStarted = false;
+let gameOver = false;
+let isReady = false;
+
+const bird = {
+    x: canvas.width * 0.15,
+    y: canvas.height / 2,
+    velocity: 0,
+    size: canvas.width * 0.05
+};
+
+/* ======================== */
+/*  DOM ELEMENTS & UI      */
+/* ======================== */
+const startScreen = document.getElementById('startScreen');
+const gameOverScreen = document.getElementById('gameOverScreen');
+const finalScore = document.getElementById('finalScore');
+const startPrompt = document.getElementById('startPrompt');
+
+/* ======================== */
+/*  AUDIO/VIDEO PATTERNS   */
+/* ======================== */
+const horizontalPipePattern = createHorizontalPipePattern();
+const rustPattern = (() => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.height = 64;
+    
+    // Base rust color
+    ctx.fillStyle = '#763c28';
+    ctx.fillRect(0, 0, 64, 64);
+    
+    // Rust texture
+    ctx.fillStyle = '#964f38';
+    for(let i = 0; i < 200; i++) {
+        ctx.fillRect(
+            Math.random() * 64,
+            Math.random() * 64,
+            Math.random() * 3,
+            Math.random() * 3
+        );
+    }
+    
+    // Dark corrosion spots
+    ctx.fillStyle = '#542915';
+    for(let i = 0; i < 50; i++) {
+        ctx.beginPath();
+        ctx.arc(
+            Math.random() * 64,
+            Math.random() * 64,
+            Math.random() * 3,
+            0,
+            Math.PI * 2
+        );
+        ctx.fill();
+    }
+    
+    return ctx.createPattern(canvas, 'repeat');
+})();
+
+/* ======================== */
+/*  PHYSICS CONSTANTS       */
+/* ======================== */
+const gravity = 0.5;
+const jump = -8;
+const pipeWidth = 50;
+
 let horizontalPipes = {
     top: { x: 0 },
     bottom: { x: 0 }
@@ -72,8 +209,6 @@ function createHorizontalPipePattern() {
     
     return ctx.createPattern(patternCanvas, 'repeat');
 }
-
-const horizontalPipePattern = createHorizontalPipePattern();
 
 function updateHorizontalPipes() {
     if(gameStarted && !gameOver) {
@@ -127,20 +262,6 @@ function drawHorizontalPipes() {
     }
     ctx.restore();
 }
-
-
-let clouds = [];
-const CLOUD_CONFIG = {
-  count: 8,
-  baseSpeed: 0.15,
-  sizeVariation: 0.3,
-  opacityRange: [0.3, 0.7]
-};
-
-let audioCtx = null; // Single AudioContext instance
-let isReady = false;
-let buildings = [];
-let greeneryBushes = [];
 
 
 function initAudioContext() {
@@ -344,11 +465,6 @@ function playGameOverSound() {
     };
 }
 
-
-const gameContainer = document.getElementById('gameContainer');
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-let highScore = localStorage.getItem('flutterHighScore') || 0;
 updateHighScoreDisplay();
 
 function updateClouds() {
@@ -406,77 +522,8 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-// Modified bird size to be responsive
-let bird = {
-    x: canvas.width * 0.15,
-    y: canvas.height / 2,
-    velocity: 0,
-    size: canvas.width * 0.05
-};
-
-const levels = [
-    { // Level 1 - Easy (alternating single pipes) 
-        scoreRequired: 0,
-        pipeSpeed: 1.2,
-        pipeSpacing: 280,
-        goldenPipeChance: 0,
-        minSinglePipeHeight: 100,  // Minimum height for single pipes
-        maxSinglePipeHeight: 300   // Maximum height for single pipes
-    },
-    { // Level 2 - Normal difficulty
-        scoreRequired: 5,
-        pipeSpeed: 1.5,
-        pipeGap: 200,
-        pipeSpacing: 250,
-        goldenPipeChance: 0.1
-    },
-    { // Level 3 - Medium difficulty
-        scoreRequired: 15,
-        pipeSpeed: 2,
-        pipeGap: 180,
-        pipeSpacing: 220,
-        goldenPipeChance: 0.15
-    },
-    { // Level 4 - Hard difficulty
-        scoreRequired: 25,
-        pipeSpeed: 2.5,
-        pipeGap: 160,
-        pipeSpacing: 200,
-        goldenPipeChance: 0.2
-    },
-    { // Level 5 - Expert
-        scoreRequired: 35,
-        pipeSpeed: 3,
-        pipeGap: 150,
-        pipeSpacing: 195,
-        goldenPipeChance: 0.25
-    }
-];
-let pipes = [];
-let score = 0;
-let gameStarted = false;
-let gameOver = false;
-const gravity = 0.5;
-const jump = -8;
-const pipeWidth = 50;
-
-// UI elements
-const startScreen = document.getElementById('startScreen');
-const gameOverScreen = document.getElementById('gameOverScreen');
-const finalScore = document.getElementById('finalScore');
-let smokeParticles = [];
 let lastFrameTime = Date.now();
-const SMOKE_CONFIG = {
-    emissionRate: 30,         // Particles per second per pipe
-    maxParticles: 500,        // Reduced for performance
-    baseYOffset: 8,          
-    horizontalSpread: 25,
-    verticalSpeed: 1.2,      
-    startSize: [3, 6],       
-    sizeGrowth: 0.15,        
-    fadeRate: 0.02,          
-    swirlIntensity: 0.05     
-};
+
 
 // Sparkle effects
 function createSparkles(containerId) {
@@ -919,44 +966,6 @@ function drawBird() {
     ctx.closePath();
     ctx.fill();
 }
-
-// Add this pattern creation AT THE TOP of your file
-const rustPattern = (() => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = canvas.height = 64;
-    
-    // Base rust color
-    ctx.fillStyle = '#763c28';
-    ctx.fillRect(0, 0, 64, 64);
-    
-    // Rust texture
-    ctx.fillStyle = '#964f38';
-    for(let i = 0; i < 200; i++) {
-        ctx.fillRect(
-            Math.random() * 64,
-            Math.random() * 64,
-            Math.random() * 3,
-            Math.random() * 3
-        );
-    }
-    
-    // Dark corrosion spots
-    ctx.fillStyle = '#542915';
-    for(let i = 0; i < 50; i++) {
-        ctx.beginPath();
-        ctx.arc(
-            Math.random() * 64,
-            Math.random() * 64,
-            Math.random() * 3,
-            0,
-            Math.PI * 2
-        );
-        ctx.fill();
-    }
-    
-    return ctx.createPattern(canvas, 'repeat');
-})();
 
 function drawPipes() {
     pipes.forEach(pipe => {
