@@ -208,79 +208,19 @@ const COLORS = {
  * Main game loop handling all rendering and updates
  * @param {number} timestamp - DOMHighResTimeStamp from requestAnimationFrame
  */
-function gameLoop() {
+ function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Draw sky gradient
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, COLORS.SKY_TOP);
-    gradient.addColorStop(1, COLORS.SKY_BOTTOM);
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+    drawSky();
     updateClouds();
-    // Draw clouds
     drawClouds();
-
-    // Draw city skyline
-    ctx.fillStyle = '#2c3e50';
-    buildings.forEach(building => {
-        // Draw building
-        ctx.fillRect(building.x, canvas.height - building.height, building.width, building.height);
-        
-        // Draw windows
-        ctx.fillStyle = '#34495e';
-        for (let y = canvas.height - building.height + 10; y < canvas.height - 5; y += 15) {
-            for (let x = building.x + 5; x < building.x + building.width - 5; x += 10) {
-                if (Math.random() < 0.7) {
-                    ctx.fillRect(x, y, 5, 5);
-                }
-            }
-        }
-        ctx.fillStyle = '#2c3e50';
-    });
-
-    // Draw greenery base
-    ctx.fillStyle = '#2ecc71';
-    ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
-
-    // Draw bushes along the top of the grass
-    ctx.fillStyle = '#27ae60';
-    greeneryBushes.forEach(bush => {
-        ctx.beginPath();
-        ctx.arc(
-            bush.x,
-            canvas.height - 30,
-            bush.size,
-            Math.PI,
-            Math.PI * 2
-        );
-        ctx.fill();
-    });
-
-    // Draw stars
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-    for(let i = 0; i < 50; i++) {
-        ctx.beginPath();
-        ctx.arc(Math.random()*canvas.width, Math.random()*canvas.height, 2, 0, Math.PI*2);
-        ctx.fill();
-    }
-
-    updateHorizontalPipes(); // Add this in update section
-    drawHorizontalPipes();   // Add this in draw section
-
+    drawEnvironment();
+    updateHorizontalPipes();
+    drawHorizontalPipes();
+    
     if (gameStarted && !gameOver) {
-        // Add floating animation when ready
-        if (isReady) {
-            bird.y = canvas.height / 2 + Math.sin(Date.now() * 0.005) * 10;
-        }
-        
-        updateGame();
-        updateSmoke();
-        drawPipes();
-        drawSmoke();
-        drawBird();
-        drawScore();
+        updateGameState();
+        drawGameElements();
     }
 
     requestAnimationFrame(gameLoop);
@@ -416,6 +356,96 @@ function getCurrentLevel() {
         }
     }
     return levels[0];
+}
+
+/* ======================== */
+/*  ENVIRONMENT RENDERING   */
+/* ======================== */
+
+function drawSky() {
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, COLORS.SKY_TOP);
+    gradient.addColorStop(1, COLORS.SKY_BOTTOM);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function drawEnvironment() {
+    drawCitySkyline();
+    drawGreenery();
+    drawStars();
+}
+
+function drawCitySkyline() {
+    // Buildings
+    ctx.fillStyle = '#2c3e50';
+    buildings.forEach(building => {
+        ctx.fillRect(building.x, canvas.height - building.height, building.width, building.height);
+        drawBuildingWindows(building);
+    });
+}
+
+function drawBuildingWindows(building) {
+    ctx.fillStyle = '#34495e';
+    for (let y = canvas.height - building.height + 10; y < canvas.height - 5; y += 15) {
+        for (let x = building.x + 5; x < building.x + building.width - 5; x += 10) {
+            if (Math.random() < 0.7) {
+                ctx.fillRect(x, y, 5, 5);
+            }
+        }
+    }
+    ctx.fillStyle = '#2c3e50';
+}
+
+function drawGreenery() {
+    // Grass base
+    ctx.fillStyle = '#2ecc71';
+    ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
+
+    // Bushes
+    ctx.fillStyle = '#27ae60';
+    greeneryBushes.forEach(drawBush);
+}
+
+function drawBush(bush) {
+    ctx.beginPath();
+    ctx.arc(
+        bush.x,
+        canvas.height - 30,
+        bush.size,
+        Math.PI,
+        Math.PI * 2
+    );
+    ctx.fill();
+}
+
+function drawStars() {
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    for(let i = 0; i < 50; i++) {
+        ctx.beginPath();
+        ctx.arc(
+            Math.random() * canvas.width,
+            Math.random() * canvas.height,
+            2, 0, Math.PI * 2
+        );
+        ctx.fill();
+    }
+}
+
+/* ======================== */
+/*  GAME STATE MANAGEMENT   */
+/* ======================== */
+
+function updateGameState() {
+    updateGame();
+    updateSmoke();
+}
+
+function drawGameElements() {
+    drawPipes();
+    drawSmoke();
+    drawBird();
+    drawScore();
 }
 
 /* ======================== */
