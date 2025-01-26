@@ -132,6 +132,11 @@ button:active {
     transform: translateY(-2px);
 }
 
+#shareButton:disabled {
+    opacity: 0.7;
+    cursor: wait;
+}
+
 .x-logo {
     width: 20px;
     height: 20px;
