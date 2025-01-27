@@ -4,10 +4,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Fluttering Fowl</title>
     <link rel="stylesheet" href="css/style.css">
+    <!-- Combined Vercel Analytics + Speed Insights -->
     <script>
-        window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-    </script>
-    <script defer src="/_vercel/insights/script.js"></script>
+    // Web Analytics (va) initialization
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    
+    // Speed Insights (si) initialization
+    window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+  </script>
+  
+  <!-- Both scripts deferred to prevent render-blocking -->
+  <script defer src="/_vercel/insights/script.js"></script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
 </head>
 <body>
     <div id="gameContainer">
