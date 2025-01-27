@@ -724,7 +724,8 @@ function drawClouds() {
 /* ======================== */
 function preloadScoreImage() {
     const img = new Image();
-    img.src = '/resources/ff-score-card.png'; // Now points to your own domain
+    img.crossOrigin = "anonymous";
+    img.src = 'https://raw.githubusercontent.com/bishwaraj13/Flutter-Fowl/main/resources/ff-score-card.png';
     img.onload = () => {
         preloadedScoreImage = img;
     };
