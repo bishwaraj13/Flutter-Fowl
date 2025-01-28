@@ -158,6 +158,12 @@ button:active {
                 0 0 15px rgba(52, 152, 219, 0.5);
 }
 
+#startButton {
+    background: linear-gradient(145deg, #2ecc71, #27ae60);
+    box-shadow: 0 4px 0 #c27c0e,
+                0 0 15px rgba(241, 196, 15, 0.5);
+}
+
 @media (max-width: 600px) {
     .button-row {
         gap: 0.5rem;

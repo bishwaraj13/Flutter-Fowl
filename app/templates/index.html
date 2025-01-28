@@ -40,7 +40,12 @@
                 <div class="stats-label">HIGH SCORE</div>
                 <div class="stats-value" id="highScoreValue">0</div>
             </div>
-            <button id="startButton">START</button>
+            <div class="button-row">
+                <button id="startButton" class="wide-button">START FLYING</button>
+            </div>
+            <div class="button-row">
+                <button id="leaderboardButton" class="wide-button">Leaderboard</button>
+            </div>
         </div>
 
         <div id="gameOverScreen" class="screen">
@@ -1141,6 +1146,20 @@ function initEventListeners() {
         if (['Space', 'ArrowUp'].includes(e.code)) {
             handleJump(e);
         }
+    });
+
+    document.getElementById('leaderboardButton').addEventListener('click', function() {
+        // Get any optional filters you might want to include
+        const timeFilter = "all"
+        const page = 1; // Default page
+        
+        // Construct URL with query parameters
+        const url = new URL('/leaderboard', window.location.origin);
+        url.searchParams.append('page', page);
+        url.searchParams.append('time_filter', timeFilter);
+
+        // Navigate to the leaderboard page with filters
+        window.location.href = url;
     });
 
     // Start button
