@@ -1154,6 +1154,12 @@ function initEventListeners() {
 
     // Share button
     document.getElementById('shareButton').addEventListener('click', shareMyScore);
+
+    // Add to leaderboard button
+    document.getElementById('addToLeaderboardButton').addEventListener('click', function() {
+    console.log('Add to leaderboard clicked: ', score);
+    window.location.href = `/submit-score?score=${score}`;
+});
 }
 
 function handleJump(e) {
