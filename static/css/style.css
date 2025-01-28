@@ -342,14 +342,6 @@ button:active {
     filter: blur(2px);
 }
 
-#gameOverMessage {
-    font-size: 1.2em;
-    color: #e74c3c;
-    text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
-    animation: pulse 1s infinite;
-    margin: 1rem 0;
-}
-
 /* ===== Responsive Design ===== */
 @media (max-width: 600px) {
     .screen {
