@@ -236,17 +236,6 @@ button:active {
     50% { transform: translate(-50%, -55%); }
 }
 
-@keyframes sparkleTwinkle {
-    0%, 100% {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(0.5);
-    }
-    50% {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1.2) rotate(180deg);
-    }
-}
-
 /* ===== Score Notifications ===== */
 #notificationsContainer {
     position: fixed;
@@ -318,28 +307,6 @@ button:active {
     animation: 
         crashSpin 1s ease-out,
         crashFloat 2s ease-in-out 1s infinite;
-}
-
-.sparkle {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 50%;
-    pointer-events: none;
-    animation: sparkleTwinkle 1.5s ease-in-out infinite;
-    transform: translate(-50%, -50%);
-}
-
-.sparkle::before {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at center, 
-        rgba(255, 255, 255, 1) 0%, 
-        rgba(255, 255, 255, 0) 70%);
-    filter: blur(2px);
 }
 
 /* ===== Responsive Design ===== */

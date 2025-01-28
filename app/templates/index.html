@@ -33,7 +33,6 @@
         <div id="startScreen" class="screen">
             <div class="screen-background"></div>
             <div class="game-title">
-                <div class="sparkles" id="startSparkles"></div>
                 FLUTTERING FOWL
             </div>
             <img src="{{ url_for('static', filename='resources/crashed_bird_3.png') }}" class="crashed-bird">
@@ -1050,18 +1049,6 @@ function createScoreNotification(birdX, birdY) {
     setTimeout(() => notification.remove(), 1000);
 }
 
-function createSparkles(containerId) {
-    const container = document.getElementById(containerId);
-    for (let i = 0; i < 20; i++) {
-        const sparkle = document.createElement('div');
-        sparkle.className = 'sparkle';
-        sparkle.style.left = `${Math.random() * 100}%`;
-        sparkle.style.top = `${Math.random() * 100}%`;
-        sparkle.style.animationDelay = `${Math.random() * 1}s`;
-        container.appendChild(sparkle);
-    }
-}
-
 /* ======================== */
 /*  BIRD MANAGEMENT         */
 /* ======================== */
@@ -1266,9 +1253,6 @@ window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
 let lastFrameTime = Date.now();
-
-// Initialize effects
-createSparkles('startSparkles');
 
 // Event listeners
 document.getElementById('startButton').addEventListener('click', startGame);
