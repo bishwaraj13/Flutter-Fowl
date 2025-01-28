@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fluttering Fowl - Leaderboard</title>
+    <style>
+        body {
+            margin: 0;
+            background: linear-gradient(to bottom, #87CEEB, #4682B4);
+            font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
+            color: #2c3e50;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .leaderboard-header {
+            text-align: center;
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .leaderboard-title {
+            font-size: 2.5em;
+            color: #f1c40f;
+            text-shadow: 3px 3px 0 #2c3e50;
+            margin: 20px 0;
+        }
+
+        .leaderboard-table {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:nth-child(even) {
+            background-color: rgba(236, 240, 241, 0.5);
+        }
+
+        .rank {
+            font-weight: bold;
+            color: #e74c3c;
+            width: 60px;
+        }
+
+        .score {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .date {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #f1c40f;
+            color: #2c3e50;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: transform 0.2s;
+        }
+
+        .back-link:hover {
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .leaderboard-title {
+                font-size: 2em;
+            }
+            
+            td, th {
+                padding: 10px;
+                font-size: 0.9em;
+            }
+        }
+        /* Medal icons */
+        .medal {
+            width: 30px;
+            height: 30px;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        
+        /* Time filters */
+        .time-filters {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .time-filter {
+            display: inline-block;
+            padding: 8px 16px;
+            margin: 0 5px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .time-filter.active {
+            background: #f1c40f;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        
+        /* Pagination */
+        .pagination {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .page-link {
+            display: inline-block;
+            padding: 8px 16px;
+            margin: 0 3px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            text-decoration: none;
+            color: #2c3e50;
+            transition: all 0.2s;
+        }
+        
+        .page-link:hover {
+            background: #f1c40f;
+        }
+        
+        .page-link.active {
+            background: #2c3e50;
+            color: white;
+        }
+        
+        /* Avatar */
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #2c3e50;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+    </style>
+    <!-- Include the same analytics scripts as index.html -->
+    <script>
+        window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+        window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="leaderboard-header">
+            <h1 class="leaderboard-title">HIGH SCORES</h1>
+                {% if time_filter == 'daily' %}
+                    DAILY LEADERBOARD
+                {% elif time_filter == 'weekly' %}
+                    WEEKLY LEADERBOARD
+                {% else %}
+                    ALL-TIME LEADERBOARD
+                {% endif %}
+            </h1>
+        </div>
+
+        <div class="time-filters">
+            <a href="{{ url_for('leaderboard', time_filter='daily', page=1) }}" 
+               class="time-filter {% if time_filter == 'daily' %}active{% endif %}">
+                Today
+            </a>
+            <a href="{{ url_for('leaderboard', time_filter='weekly', page=1) }}" 
+               class="time-filter {% if time_filter == 'weekly' %}active{% endif %}">
+                This Week
+            </a>
+            <a href="{{ url_for('leaderboard', time_filter='all', page=1) }}" 
+               class="time-filter {% if time_filter == 'all' %}active{% endif %}">
+                All Time
+            </a>
+        </div>
+
+        <div class="leaderboard-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Player</th>
+                        <th>Score</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for score in scores.items %}
+                    <tr>
+                        <td class="rank">
+                            {% if loop.index == 1 %}
+                                <svg class="medal" viewBox="0 0 24 24">
+                                    <path fill="#FFD700" d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2z"/>
+                                </svg>
+                            {% elif loop.index == 2 %}
+                                <svg class="medal" viewBox="0 0 24 24">
+                                    <path fill="#C0C0C0" d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2z"/>
+                                </svg>
+                            {% elif loop.index == 3 %}
+                                <svg class="medal" viewBox="0 0 24 24">
+                                    <path fill="#CD7F32" d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2z"/>
+                                </svg>
+                            {% else %}
+                                #{{ (scores.page - 1) * scores.per_page + loop.index }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="avatar">
+                                {% if score.user and score.user.avatar %}
+                                    <img src="{{ score.user.avatar }}" alt="{{ score.name }}">
+                                {% else %}
+                                    {{ score.name|first|upper }}
+                                {% endif %}
+                            </div>
+                            {{ score.name }}
+                        </td>
+                        <td class="score">{{ score.score }}</td>
+                        <td class="date">{{ score.timestamp.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 30px;">
+                            No scores yet! Be the first to play!
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination">
+            {% if scores.has_prev %}
+                <a href="{{ url_for('leaderboard', page=scores.prev_num, time_filter=time_filter) }}" 
+                   class="page-link">&laquo; Previous</a>
+            {% endif %}
+            
+            {% for page_num in scores.iter_pages() %}
+                {% if page_num %}
+                    <a href="{{ url_for('leaderboard', page=page_num, time_filter=time_filter) }}" 
+                       class="page-link {% if page_num == scores.page %}active{% endif %}">
+                        {{ page_num }}
+                    </a>
+                {% else %}
+                    <span class="page-link">...</span>
+                {% endif %}
+            {% endfor %}
+            
+            {% if scores.has_next %}
+                <a href="{{ url_for('leaderboard', page=scores.next_num, time_filter=time_filter) }}" 
+                   class="page-link">Next &raquo;</a>
+            {% endif %}
+        </div>
+
+        <a href="{{ url_for('index') }}" class="back-link">Back to Game</a>
+    </div>
+</body>
+</html>

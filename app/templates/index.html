@@ -3,7 +3,8 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Fluttering Fowl</title>
-    <link rel="stylesheet" href="css/style.css">
+    <!-- <link rel="stylesheet" href="css/style.css"> -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <!-- Combined Vercel Analytics + Speed Insights -->
     <script>
     // Web Analytics (va) initialization
@@ -26,7 +27,7 @@
                 <div class="sparkles" id="startSparkles"></div>
                 FLUTTERING FOWL
             </div>
-            <img src="resources/frame-1d.svg" class="crashed-bird">
+            <img src="{{ url_for('static', filename='resources/frame-1d.svg') }}" class="crashed-bird">
             <div class="stats-panel">
                 <div class="stats-label">HIGH SCORE</div>
                 <div class="stats-value" id="highScoreValue">0</div>
@@ -37,7 +38,7 @@
         <div id="gameOverScreen" class="screen">
             <div class="screen-background"></div>
             <div class="game-title">CRASH LANDING!</div>
-            <img src="resources/frame-1d.svg" class="crashed-bird">
+            <img src="{{ url_for('static', filename='resources/frame-1d.svg') }}" class="crashed-bird">
             <div class="stats-panel">
                 <div class="stats-label">FINAL SCORE</div>
                 <div class="stats-value" id="finalScore">0</div>
@@ -733,7 +734,7 @@ function drawClouds() {
 function preloadScoreImage() {
     const img = new Image();
     // img.crossOrigin = "anonymous";
-    img.src = 'https://flutteringfowl.com/resources/ff-score-card.png';
+    img.src = "{{ url_for('static', filename='resources/ff-score-card.png') }}";
     img.onload = () => {
         preloadedScoreImage = img;
     };
