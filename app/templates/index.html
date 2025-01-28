@@ -17,6 +17,15 @@
   <!-- Both scripts deferred to prevent render-blocking -->
   <script defer src="/_vercel/insights/script.js"></script>
   <script defer src="/_vercel/speed-insights/script.js"></script>
+  <style>
+    body {
+        background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.2)), url("{{ url_for('static', filename='resources/pipes_bg_2.jpg') }}") !important;
+        background-size: cover;
+        background-position: center;
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+    }
+  </style>
 </head>
 <body>
     <div id="gameContainer">
