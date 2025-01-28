@@ -312,8 +312,8 @@ button:active {
 }
 
 .crashed-bird {
-    width: 150px;
-    height: 150px;
+    width: 250px;
+    height: 250px;
     margin: 0.5px;
     animation: 
         crashSpin 1s ease-out,
@@ -353,7 +353,7 @@ button:active {
 /* ===== Responsive Design ===== */
 @media (max-width: 600px) {
     .screen {
-        padding: 1.5rem;
+        padding: 0.5rem;
         width: 85%;
     }
 
