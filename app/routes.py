@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, session
 from app import app, db
 from app.models import Leaderboard
 from datetime import datetime, timedelta
@@ -7,11 +7,20 @@ from datetime import datetime, timedelta
 def index():
     return render_template('index.html')
 
+@app.route('/store-score', methods=['POST'])
+def store_score():
+    score = request.form.get('score', type=int)
+    if score is not None:
+        session['current_score'] = score
+        session['score_valid'] = True  # Add validation flag
+    return redirect(url_for('submit_score'))
+
 @app.route('/submit-score')
 def submit_score():
-    score = request.args.get('score', type=int)
-    return render_template('submit_score.html', score=score)
-    
+    if not session.get('score_valid'):
+        return redirect(url_for('index'))
+    return render_template('submit_score.html', score=session.get('current_score'))
+
 @app.route('/leaderboard', methods=['GET', 'POST'])
 def leaderboard():
     page = request.args.get('page', 1, type=int)
@@ -27,12 +36,27 @@ def leaderboard():
         start_date = datetime.min
     
     query = Leaderboard.query.filter(Leaderboard.timestamp >= start_date)
-    
+
     if request.method == 'POST':
-        if 'name' not in request.form or 'score' not in request.form:
-            flash('Error: Please fill in all fields.')
-            return redirect(url_for('submit_score', score=request.form['score']))
+        # Validate session first
+        if not session.get('score_valid'):
+            return redirect(url_for('index'))
         
+        # Validate score consistency
+        submitted_score = request.form.get('score', type=int)
+        session_score = session.get('current_score')
+        
+        if submitted_score != session_score:
+            return redirect(url_for('index'))
+        
+        # Clear session data after successful validation
+        session.pop('current_score', None)
+        session.pop('score_valid', None)
+        
+        if 'name' not in request.form or 'score' not in request.form:
+                flash('Error: Please fill in all fields.')
+                return redirect(url_for('submit_score', score=request.form['score']))
+            
         name = request.form['name']
         score = request.form['score']
         

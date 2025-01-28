@@ -1157,8 +1157,19 @@ function initEventListeners() {
 
     // Add to leaderboard button
     document.getElementById('addToLeaderboardButton').addEventListener('click', function() {
-    console.log('Add to leaderboard clicked: ', score);
-    window.location.href = `/submit-score?score=${score}`;
+    // Create and submit hidden form
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/store-score';
+    
+    const scoreInput = document.createElement('input');
+    scoreInput.type = 'hidden';
+    scoreInput.name = 'score';
+    scoreInput.value = score;
+    
+    form.appendChild(scoreInput);
+    document.body.appendChild(form);
+    form.submit();
 });
 }
 
