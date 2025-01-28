@@ -152,7 +152,7 @@ button:active {
     cursor: wait;
 }
 
-#leaderboardButton {
+#addToLeaderboardButton {
     background: linear-gradient(145deg, #3498db, #2980b9);
     box-shadow: 0 4px 0 #1c5d8a,
                 0 0 15px rgba(52, 152, 219, 0.5);
